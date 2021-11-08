@@ -6,13 +6,13 @@ This source requires PyAudio.
 ::
     pip install PyAudio
 
-.. autoclass:: stream2py.sources.audio.PyAudioSourceReader()
+.. autoclass:: audiostream2py.audio.PyAudioSourceReader()
     :members:
     :show-inheritance:
 
     .. automethod:: __init__
 
-.. autoclass:: stream2py.sources.audio.PaStatusFlags
+.. autoclass:: audiostream2py.audio.PaStatusFlags
     :members:
     :undoc-members:
     :show-inheritance:
@@ -23,13 +23,13 @@ PyAudio Mixins
 --------------
 Example of how to use mixins to manipulate behavior to suit your needs.
 
-.. autoclass:: stream2py.sources.audio.FillErrorWithZeroesMixin
+.. autoclass:: audiostream2py.audio.FillErrorWithZeroesMixin
     :members:
 
-.. autoclass:: stream2py.sources.audio.DictDataMixin
+.. autoclass:: audiostream2py.audio.DictDataMixin
     :members:
 
-.. autoclass:: stream2py.sources.audio.RaiseRuntimeErrorOnStatusFlagMixin
+.. autoclass:: audiostream2py.audio.RaiseRuntimeErrorOnStatusFlagMixin
     :members:
 
 Example PyAudio Mixin Usage
@@ -37,15 +37,15 @@ Example PyAudio Mixin Usage
 Mixins must be subclassed in order of precedence from left to right.
 Meaning the base class at the right and mixins with overloading methods to the left.
 
-.. autoclass:: stream2py.sources.audio.PyAudioSourceReaderRaiseOnError
+.. autoclass:: audiostream2py.audio.PyAudioSourceReaderRaiseOnError
     :members:
     :show-inheritance:
 
-.. autoclass:: stream2py.sources.audio.PyAudioSourceReaderRaiseOnError
+.. autoclass:: audiostream2py.audio.PyAudioSourceReaderRaiseOnError
     :members:
     :show-inheritance:
 
-.. autoclass:: stream2py.sources.audio.PyAudioSourceReaderWithZeroedErrorsAndDictData
+.. autoclass:: audiostream2py.audio.PyAudioSourceReaderWithZeroedErrorsAndDictData
     :members:
     :show-inheritance:
 """
@@ -57,7 +57,6 @@ from contextlib import suppress, contextmanager
 from enum import IntFlag
 import math
 import operator
-import threading
 
 import pyaudio
 
@@ -85,7 +84,14 @@ def _a_pyaudio_source_reader_can_be_constructed(
     frames_per_buffer=1024,
 ) -> bool:
     try:
-        PyAudioSourceReader(**locals())
+        PyAudioSourceReader(
+            input_device_index=input_device_index,
+            rate=rate,
+            width=width,
+            unsigned=unsigned,
+            channels=channels,
+            frames_per_buffer=frames_per_buffer,
+        )
         return True
     except ValueError:
         return False
@@ -121,6 +127,7 @@ def find_a_default_input_device_index(verbose=True):
                     f"Will use it as the default input device. It's index is {index}"
                 )
             return index
+    raise RuntimeError('No input device found.')
 
 
 # TODO: Test and merge with find_a_default_input_device_index
@@ -128,17 +135,20 @@ def find_a_device_index(filt='microphone', dflt=None):
     if isinstance(filt, str):
         match_str = filt
 
-        def filt(x):
+        def _filt(x):
             return match_str in x.get('name', match_str).lower()
 
-    match = next(filter(filt, PyAudioSourceReader.list_device_info()), None)
-    return (match is not None and match['index']) or dflt
+    else:
+        _filt = filt
+
+    match = next(filter(_filt, PyAudioSourceReader.list_device_info()), None)
+    return match['index'] if match and match['index'] is not None else dflt
 
 
 class PaStatusFlags(IntFlag):
     """Enum to check status_flag for error codes
 
-    >>> from stream2py.sources.audio import PaStatusFlags
+    >>> from audiostream2py.audio import PaStatusFlags
     >>> PaStatusFlags(0)
     <PaStatusFlags.paNoError: 0>
     >>> PaStatusFlags(2)
@@ -185,16 +195,13 @@ class PyAudioSourceReader(SourceReader):
 
         :param rate: Specifies the desired sample rate (in Hz)
         :param width: Sample width in bytes (1, 2, 3, or 4)
-        :param unsigned: For 1 byte width, specifies signed or unsigned format. Ignored if byte width is not 1.
-        :param channels: The desired number of input channels. Ignored if input_device is not specified (or None).
-        :param input_device_index: Index of Input Device to use. Unspecified (or None) uses default device.
+        :param unsigned: For 1 byte width, specifies signed or unsigned format.
+            Ignored if byte width is not 1.
+        :param channels: The desired number of input channels.
+            Ignored if input_device is not specified (or None).
+        :param input_device_index: Index of Input Device to use.
+            Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
-
-        .. todo::
-            * option to get input device by name instead of index and warn of duplicate names or missing
-            * input_device_index is used by info and must be found and filled into _init_kwargs if looking up by name
-            * warn if index does not match name when both name and index are specified
-            * option to get input from file
         """
         self._init_kwargs = {
             k: v for k, v in locals().items() if k not in ('self', '__class__')
@@ -261,7 +268,7 @@ class PyAudioSourceReader(SourceReader):
         """
         Provides a dict with init kwargs, bt, and device info
 
-        >>> from stream2py.sources.audio import PyAudioSourceReader
+        >>> from audiostream2py.audio import PyAudioSourceReader
         >>> from pprint import pprint
         >>> source = PyAudioSourceReader(
         ... rate=44100, width=2, channels=1,
@@ -314,7 +321,8 @@ class PyAudioSourceReader(SourceReader):
         :param timestamp: start time of waveform
         :param waveform: recorded input data
         :param frame_count: number of frames, sample count
-        :param time_info: dict, see http://portaudio.com/docs/v19-doxydocs/structPaStreamCallbackTimeInfo.html
+        :param time_info: dict,
+            see http://portaudio.com/docs/v19-doxydocs/structPaStreamCallbackTimeInfo.html
         :param status_flags: PaStatusFlags
         :return: (timestamp, waveform, frame_count, time_info, status_flags)
         """
@@ -343,11 +351,13 @@ class PyAudioSourceReader(SourceReader):
         """
         if len(self.data):
             return self.data.popleft()
+        return None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
         """Calculates timestamp based on open() bt and frames read.
-        If there is an error conveyed by status_flags, the frame count is reset to 0 and starting timestamp is shifted
-        from open() bt by time_info to approximate actual time in case of sample loss.
+        If there is an error conveyed by status_flags, the frame count is reset to 0 and starting
+        timestamp is shifted from open() bt by time_info to approximate actual time in case of
+        sample loss.
         See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream
 
         :param in_data: recorded input data, waveform
@@ -428,7 +438,8 @@ class PyAudioSourceReader(SourceReader):
     def audio_buffer_size_seconds_to_maxlen(
         buffer_size_seconds, rate, frames_per_buffer
     ) -> int:
-        """Calculate maxlen for StreamBuffer to keep a minimum of buffer_size_seconds of data on buffer
+        """Calculate maxlen for StreamBuffer to keep a minimum of buffer_size_seconds of data on
+        buffer
 
         :param buffer_size_seconds: desired length of StreamBuffer in seconds
         :param rate: sample rate
@@ -464,8 +475,8 @@ class FillErrorWithZeroesMixin:
     _error_status_flag = None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """On status flag error code, reate wf bytes of value zero for the entire duration of the error to replace
-        garbled data in addtion to the base behavior.
+        """On status flag error code, reate wf bytes of value zero for the entire duration of the
+        error to replace garbled data in addtion to the base behavior.
 
         :param in_data: recorded input data, waveform
         :param frame_count: number of frames, sample count
@@ -534,7 +545,8 @@ class FillErrorWithZeroesMixin:
     def _fill_time_interval_with_zeroes(
         self, first_error_status_ts, first_ok_status_ts
     ):
-        """Create wf bytes of value zero for the entire duration of the error to replace garbled data
+        """Create wf bytes of value zero for the entire duration of the error to replace garbled
+        data
 
         :param first_error_status_ts: Error bt
         :param first_ok_status_ts: Error tt
@@ -561,8 +573,8 @@ class FillErrorWithOnesMixin:
     _error_status_flag = None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """On status flag error code, reate wf bytes of value zero for the entire duration of the error to replace
-        garbled data in addtion to the base behavior.
+        """On status flag error code, reate wf bytes of value zero for the entire duration of the
+        error to replace garbled data in addtion to the base behavior.
 
         :param in_data: recorded input data, waveform
         :param frame_count: number of frames, sample count
@@ -631,7 +643,8 @@ class FillErrorWithOnesMixin:
     def _fill_time_interval_with_ones(
         self, first_error_status_ts, first_ok_status_ts, fill_value=1
     ):
-        """Create wf bytes of value zero for the entire duration of the error to replace garbled data
+        """Create wf bytes of value zero for the entire duration of the error to replace garbled
+        data
 
         :param first_error_status_ts: Error bt
         :param first_ok_status_ts: Error tt
@@ -654,9 +667,13 @@ class FillErrorWithOnesMixin:
 
 
 class DictDataMixin:
-    """Mixin to reduce data to a dict with bt, wf, and status_flag. Removing typically discarded information."""
+    """Mixin to reduce data to a dict with bt, wf, and status_flag. Removing typically discarded
+    information.
+    """
 
-    def data_to_append(self, timestamp, waveform, frame_count, time_info, status_flags):
+    def data_to_append(
+        self, timestamp, waveform, frame_count, time_info, status_flags
+    ):  # pylint: disable=W0613
         """Simplify data only
 
         :param timestamp: start time of waveform
@@ -683,7 +700,7 @@ class RaiseRuntimeErrorOnStatusFlagMixin:
         if PaStatusFlags.paNoError != PaStatusFlags(status_flags):
             raise RuntimeError(PaStatusFlags(status_flags))
 
-        return super(RaiseRuntimeErrorOnStatusFlagMixin, self).data_to_append(
+        return super().data_to_append(
             timestamp, waveform, frame_count, time_info, status_flags
         )
 
@@ -722,7 +739,7 @@ def _test_run_PyAudioSourceReader(
     from pprint import pprint
 
     source = readerClass(
-        rate=44100, width=2, channels=1, input_device_index=0, frames_per_buffer=4096,
+        rate=44100, width=2, channels=1, input_device_index=5, frames_per_buffer=4096,
     )
     pprint(source.info)
     try:
