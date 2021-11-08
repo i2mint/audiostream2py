@@ -21,11 +21,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt update -y
-          apt install -y curl gcc git
-          apt install -y software-properties-common
-          apt install -y libffi-dev libssl-dev libbz2-dev
-          apt install -y portaudio19-dev libsndfile-dev
+          sudo apt update -y
+          sudo apt install -y curl gcc git
+          sudo apt install -y software-properties-common
+          sudo apt install -y python-all-dev python3-distutils python3-apt
+          sudo apt install -y libffi-dev libssl-dev libbz2-dev
+          sudo apt install -y portaudio19-dev libsndfile-dev
           python -m pip install --upgrade pip
           pip -q install axblack pytest pylint isee
           isee install-requires
