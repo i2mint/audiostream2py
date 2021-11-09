@@ -57,11 +57,12 @@ from contextlib import suppress, contextmanager
 from enum import IntFlag
 import math
 import operator
+from typing import Generator, List
 
 import pyaudio
 
 from stream2py import SourceReader
-from stream2py.utility.typing_hints import Generator, ComparableType, List
+from stream2py.utility.typing_hints import ComparableType
 
 _ITEMGETTER_0 = operator.itemgetter(0)
 
