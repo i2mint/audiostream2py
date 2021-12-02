@@ -68,7 +68,9 @@ _ITEMGETTER_0 = operator.itemgetter(0)
 
 
 def list_recording_device_index_names():
-    """List (index, name) of available recording devices"""
+    """List (index, name) of available recording devices. Returns a list of the form:
+    [(2, 'MacBook Pro Microphone'), (4, 'BluetoothHeadset'), (6, 'ZoomAudioDevice')]
+    """
     return sorted(
         (d['index'], d['name'])
         for d in PyAudioSourceReader.list_device_info()
@@ -131,6 +133,32 @@ def find_a_default_input_device_index(verbose=True):
     raise RuntimeError('No input device found.')
 
 
+# Refactored version based on find_a_device_index:
+def find_a_default_input_device_index(
+    chk_list=('microphone', 'mic', _a_pyaudio_source_reader_can_be_constructed),
+    verbose=True,
+):
+    """Try to find a device (index) that might work for audio input.
+    Look for one that has 'microphone' in it's name, if not 'mic', and if not, as a last
+    resort, just anything for which a PyAudioSourceReader can be made.
+    """
+
+    # check in order if any of the condition in chk_list is satisfied
+    for check in chk_list:
+        match = find_a_device_index(check)
+        if match is not None:
+            name, index = match['name'], match['index']
+            if verbose:
+                print(
+                    f'Found {name}. '
+                    f"Will use it as the default input device. It's index is {index}"
+                )
+
+            return index
+
+    raise RuntimeError('No input device found.')
+
+
 # TODO: Test and merge with find_a_default_input_device_index
 def find_a_device_index(filt='microphone', dflt=None):
     if isinstance(filt, str):
@@ -143,7 +171,7 @@ def find_a_device_index(filt='microphone', dflt=None):
         _filt = filt
 
     match = next(filter(_filt, PyAudioSourceReader.list_device_info()), None)
-    return match['index'] if match and match['index'] is not None else dflt
+    return match if match and match['index'] is not None else dflt
 
 
 class PaStatusFlags(IntFlag):
