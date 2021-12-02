@@ -50,17 +50,22 @@ Meaning the base class at the right and mixins with overloading methods to the l
     :show-inheritance:
 """
 
-__all__ = ['PyAudioSourceReader', 'PaStatusFlags', 'PaCallbackReturnCodes']
+__all__ = [
+    'PyAudioSourceReader',
+    'PaStatusFlags',
+    'PaCallbackReturnCodes',
+    'get_input_device_index',
+]
 
 from collections import deque
 from contextlib import suppress, contextmanager
 from enum import IntFlag
 import math
 import operator
-from typing import Generator, List
+from typing import Generator, List, Callable
+import re
 
 import pyaudio
-import _portaudio as pa
 
 from stream2py import SourceReader
 from stream2py.utility.typing_hints import ComparableType
@@ -79,115 +84,73 @@ def list_recording_device_index_names():
     )
 
 
-def _a_pyaudio_source_reader_can_be_constructed(
-    input_device_index,
-    rate=44100,
-    width=2,
-    unsigned=True,
-    channels=1,
-    frames_per_buffer=1024,
-) -> bool:
-    try:
-        PyAudioSourceReader(
-            input_device_index=input_device_index,
-            rate=rate,
-            width=width,
-            unsigned=unsigned,
-            channels=channels,
-            frames_per_buffer=frames_per_buffer,
+def _list_device_info():
+    return PyAudioSourceReader.list_device_info()
+
+
+def _match_device_info(filt: Callable):
+    return filter(filt, _list_device_info())
+
+
+def match_device_info(filt: Callable, assert_unique=True):
+    """Find a device ('s info) through a function of its info (dict)"""
+    it = _match_device_info(filt)
+    info = next(it, None)
+    if info is None:
+        raise RuntimeError('No device infos matched your filter')
+    if assert_unique:
+        if next(it, None) is not None:
+            raise RuntimeError('More than one device info dict matched your filter')
+    return info
+
+
+def is_recording_device(device_info: dict):
+    """Says if a device (info) is a recording device"""
+    return device_info.get('maxInputChannels', 0) > 0
+
+
+def get_recording_device_info_by_name(name_pattern, assert_unique=True):
+    """Find a recording device by matching name pattern and return info dict"""
+    name_pattern = re.compile(name_pattern)
+    filt = lambda device_info: name_pattern.search(
+        device_info['name']
+    ) and is_recording_device(device_info)
+    return match_device_info(filt, assert_unique)
+
+
+def get_input_device_index(input_device=None, input_device_index=None, verbose=True):
+    info = None
+    # You can't specify both input_device_index and input_device!
+    if input_device is not None and input_device_index is not None:
+        raise RuntimeError(
+            f"You can't have specify both input_device and input_device_index!: "
+            f'{input_device=} and {input_device_index=}'
         )
-        return True
-    except ValueError:
-        return False
+    # If no information on the device is given, ask pyaudio to find a default
+    elif input_device is None and input_device_index is None:
+        info = PyAudioSourceReader.get_default_input_device_info()
+        if verbose:
+            import json
 
-
-# TODO: Merge with find_a_device_index
-def find_a_default_input_device_index(verbose=True):
-    """Try to find a device (index) that might work for audio input.
-    Look for one that has 'microphone' in it's name, if not 'mic', and if not, as a last
-    resort, just anything for which a PyAudioSourceReader can be made.
-    """
-    for index, name in list_recording_device_index_names():
-        if 'microphone' in name.lower():
-            if verbose:
-                print(
-                    f'Found {name}. '
-                    f"Will use it as the default input device. It's index is {index}"
-                )
-            return index
-    for index, name in list_recording_device_index_names():
-        if 'mic' in name.lower():
-            if verbose:
-                print(
-                    f'Found {name}. '
-                    f"Will use it as the default input device. It's index is {index}"
-                )
-            return index
-    for index, name in list_recording_device_index_names():
-        if _a_pyaudio_source_reader_can_be_constructed(index):
-            if verbose:
-                print(
-                    f'Found {name}. '
-                    f"Will use it as the default input device. It's index is {index}"
-                )
-            return index
-    raise RuntimeError('No input device found.')
-
-
-# Refactored version based on find_a_device_index:
-def find_a_default_input_device_index(
-    chk_list=('microphone', 'mic', _a_pyaudio_source_reader_can_be_constructed),
-    verbose=True,
-):
-    """Try to find a device (index) that might work for audio input.
-    Look for one that has 'microphone' in it's name, if not 'mic', and if not, as a last
-    resort, just anything for which a PyAudioSourceReader can be made.
-    """
-
-    # check in order if any of the condition in chk_list is satisfied
-    for check in chk_list:
-        match = find_a_device_index(check)
-        if match is not None:
-            name, index = match['name'], match['index']
-            if verbose:
-                print(
-                    f'Found {name}. '
-                    f"Will use it as the default input device. It's index is {index}"
-                )
-
-            return index
-
-    raise RuntimeError('No input device found.')
-
-
-# this one is essentially what PyAudio does:
-def find_a_default_input_device_index_ca():
-
-    pa.initialize()
-    device_index = pa.get_default_input_device()
-    return device_index
-
-
-def find_a_default_output_device_index_ca():
-
-    pa.initialize()
-    device_index = pa.get_default_output_device()
-    return device_index
-
-
-# TODO: Test and merge with find_a_default_input_device_index
-def find_a_device_index(filt='microphone', dflt=None):
-    if isinstance(filt, str):
-        match_str = filt
-
-        def _filt(x):
-            return match_str in x.get('name', match_str).lower()
-
+            print(f"Will use {info['name']} (index={info['index']}) as an input device")
+            print(f"It's info:\n{json.dumps(info, indent=2)}")
     else:
-        _filt = filt
+        input_device = input_device or input_device_index
+        if isinstance(input_device, int):
+            info = input_device
+        elif isinstance(input_device, Callable):
+            info = match_device_info(filt=input_device)
+        else:  # should be string or re.compile instance
+            info = get_recording_device_info_by_name(name_pattern=input_device)
+    return info['index']
 
-    match = next(filter(_filt, PyAudioSourceReader.list_device_info()), None)
-    return match if match and match['index'] is not None else dflt
+
+# Note: Keeping around for (approx) back-compatibility
+def find_a_default_input_device_index(verbose=True):
+    from warnings import warn
+
+    warn('Deprecating find_a_default_input_device_index. Use get_input_device_index')
+    return get_input_device_index(verbose=verbose)
 
 
 class PaStatusFlags(IntFlag):
@@ -236,6 +199,7 @@ class PyAudioSourceReader(SourceReader):
         input_device_index=None,
         frames_per_buffer=1024,
         verbose=True,
+        input_device=None,
     ):
         """
 
@@ -249,8 +213,7 @@ class PyAudioSourceReader(SourceReader):
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
         """
-        if input_device_index is None:
-            input_device_index = find_a_default_input_device_index(verbose=verbose)
+
         self._init_kwargs = {
             k: v for k, v in locals().items() if k not in ('self', '__class__')
         }
@@ -301,6 +264,11 @@ class PyAudioSourceReader(SourceReader):
         if self.data:
             self.data.clear()
         self.data = deque()
+
+    @classmethod
+    def get_default_input_device_info(cls):
+        with cls._pyaudio() as p:
+            return p.get_default_input_device_info()
 
     @property
     def sleep_time_on_read_none_s(self) -> float:
