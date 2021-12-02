@@ -191,6 +191,7 @@ class PyAudioSourceReader(SourceReader):
         channels=1,
         input_device_index=None,
         frames_per_buffer=1024,
+        verbose=True,
     ):
         """
 
@@ -204,6 +205,8 @@ class PyAudioSourceReader(SourceReader):
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
         """
+        if input_device_index is None:
+            input_device_index = find_a_default_input_device_index(verbose=verbose)
         self._init_kwargs = {
             k: v for k, v in locals().items() if k not in ('self', '__class__')
         }
