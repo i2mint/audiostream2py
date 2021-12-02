@@ -134,28 +134,27 @@ def find_a_default_input_device_index(verbose=True):
 
 
 # Refactored version based on find_a_device_index:
-# def find_a_default_input_device_index(chk_list=('microphone', 'mic', _a_pyaudio_source_reader_can_be_constructed),
-#                                       verbose=True):
-#     """Try to find a device (index) that might work for audio input.
-#     Look for one that has 'microphone' in it's name, if not 'mic', and if not, as a last
-#     resort, just anything for which a PyAudioSourceReader can be made.
-#     """
-#
-#     # check in order if any of the condition in chk_list is satisfied
-#     for check in chk_list:
-#         match = find_a_device_index(check)
-#         if match is not None:
-#             name, index = match['name'], match['index']
-#             if verbose:
-#                 name, index = match['name']
-#                 print(
-#                     f'Found {name}. '
-#                     f"Will use it as the default input device. It's index is {index}"
-#                 )
-#
-#             return index
-#
-#     raise RuntimeError('No input device found.')
+def find_a_default_input_device_index(chk_list=('microphone', 'mic', _a_pyaudio_source_reader_can_be_constructed),
+                                      verbose=True):
+    """Try to find a device (index) that might work for audio input.
+    Look for one that has 'microphone' in it's name, if not 'mic', and if not, as a last
+    resort, just anything for which a PyAudioSourceReader can be made.
+    """
+
+    # check in order if any of the condition in chk_list is satisfied
+    for check in chk_list:
+        match = find_a_device_index(check)
+        if match is not None:
+            name, index = match['name'], match['index']
+            if verbose:
+                print(
+                    f'Found {name}. '
+                    f"Will use it as the default input device. It's index is {index}"
+                )
+
+            return index
+
+    raise RuntimeError('No input device found.')
 
 
 # TODO: Test and merge with find_a_default_input_device_index
