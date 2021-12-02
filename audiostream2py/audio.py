@@ -167,6 +167,7 @@ def find_a_default_input_device_index_ca():
     device_index = pa.get_default_input_device()
     return device_index
 
+
 def find_a_default_output_device_index_ca():
 
     pa.initialize()
