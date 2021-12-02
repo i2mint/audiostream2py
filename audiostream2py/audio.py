@@ -80,12 +80,12 @@ def list_recording_device_index_names():
 
 
 def _a_pyaudio_source_reader_can_be_constructed(
-        input_device_index,
-        rate=44100,
-        width=2,
-        unsigned=True,
-        channels=1,
-        frames_per_buffer=1024,
+    input_device_index,
+    rate=44100,
+    width=2,
+    unsigned=True,
+    channels=1,
+    frames_per_buffer=1024,
 ) -> bool:
     try:
         PyAudioSourceReader(
@@ -136,8 +136,8 @@ def find_a_default_input_device_index(verbose=True):
 
 # Refactored version based on find_a_device_index:
 def find_a_default_input_device_index(
-        chk_list=('microphone', 'mic', _a_pyaudio_source_reader_can_be_constructed),
-        verbose=True,
+    chk_list=('microphone', 'mic', _a_pyaudio_source_reader_can_be_constructed),
+    verbose=True,
 ):
     """Try to find a device (index) that might work for audio input.
     Look for one that has 'microphone' in it's name, if not 'mic', and if not, as a last
@@ -220,15 +220,15 @@ class PyAudioSourceReader(SourceReader):
     _pyaudio_instance = None
 
     def __init__(
-            self,
-            *,
-            rate=44100,
-            width=2,
-            unsigned=True,
-            channels=1,
-            input_device_index=None,
-            frames_per_buffer=1024,
-            verbose=True,
+        self,
+        *,
+        rate=44100,
+        width=2,
+        unsigned=True,
+        channels=1,
+        input_device_index=None,
+        frames_per_buffer=1024,
+        verbose=True,
     ):
         """
 
@@ -299,7 +299,7 @@ class PyAudioSourceReader(SourceReader):
     def sleep_time_on_read_none_s(self) -> float:
         """One third of the expected rate frames_per_buffer will be filled"""
         seconds_per_read = (
-                self._init_kwargs['frames_per_buffer'] / self._init_kwargs['rate']
+            self._init_kwargs['frames_per_buffer'] / self._init_kwargs['rate']
         )
         one_third_read_rate = seconds_per_read / 3
         return one_third_read_rate
@@ -413,11 +413,11 @@ class PyAudioSourceReader(SourceReader):
         if self.frame_index == 0:
             # set start time based on audio time_info difference
             _time_info_diff_s = (
-                    time_info['input_buffer_adc_time']
-                    - self._first_time_info['input_buffer_adc_time']
+                time_info['input_buffer_adc_time']
+                - self._first_time_info['input_buffer_adc_time']
             )
             _timestamp_diff = (
-                    _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
+                _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
             )
             self._start_time = self.bt + _timestamp_diff
 
@@ -449,7 +449,7 @@ class PyAudioSourceReader(SourceReader):
     def _terminate_pyaudio(cls):
         with suppress(Exception):
             if cls._pyaudio_instance is not None and isinstance(
-                    cls._pyaudio_instance, (pyaudio.PyAudio,)
+                cls._pyaudio_instance, (pyaudio.PyAudio,)
             ):
                 cls._pyaudio_instance.terminate()
                 cls._pyaudio_instance = None
@@ -477,7 +477,7 @@ class PyAudioSourceReader(SourceReader):
 
     @staticmethod
     def audio_buffer_size_seconds_to_maxlen(
-            buffer_size_seconds, rate, frames_per_buffer
+        buffer_size_seconds, rate, frames_per_buffer
     ) -> int:
         """Calculate maxlen for StreamBuffer to keep a minimum of buffer_size_seconds of data on
         buffer
@@ -531,11 +531,11 @@ class FillErrorWithZeroesMixin:
         if self.frame_index == 0:
             # set start time based on audio time_info difference
             _time_info_diff_s = (
-                    time_info['input_buffer_adc_time']
-                    - self._first_time_info['input_buffer_adc_time']
+                time_info['input_buffer_adc_time']
+                - self._first_time_info['input_buffer_adc_time']
             )
             _timestamp_diff = (
-                    _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
+                _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
             )
             self._start_time = self.bt + _timestamp_diff
 
@@ -558,7 +558,7 @@ class FillErrorWithZeroesMixin:
                 )  # use OR to mark any new error status flags
         else:
             if (
-                    self._first_error_timestamp is not None
+                self._first_error_timestamp is not None
             ):  # first ok status after there was an error status
                 (zeroed_data, zeroed_count,) = self._fill_time_interval_with_zeroes(
                     self._first_error_timestamp, timestamp
@@ -584,7 +584,7 @@ class FillErrorWithZeroesMixin:
         return None, PaCallbackReturnCodes.paContinue
 
     def _fill_time_interval_with_zeroes(
-            self, first_error_status_ts, first_ok_status_ts
+        self, first_error_status_ts, first_ok_status_ts
     ):
         """Create wf bytes of value zero for the entire duration of the error to replace garbled
         data
@@ -595,10 +595,10 @@ class FillErrorWithZeroesMixin:
         """
 
         single_zero_sample = (
-                b'\x00' * self._init_kwargs['channels'] * self._init_kwargs['width']
+            b'\x00' * self._init_kwargs['channels'] * self._init_kwargs['width']
         )  # interleaved zeros
         samples_per_time_unit = (
-                self._init_kwargs['rate'] / self.timestamp_seconds_to_unit_conversion
+            self._init_kwargs['rate'] / self.timestamp_seconds_to_unit_conversion
         )
 
         delta_time = first_ok_status_ts - first_error_status_ts
@@ -629,11 +629,11 @@ class FillErrorWithOnesMixin:
         if self.frame_index == 0:
             # set start time based on audio time_info difference
             _time_info_diff_s = (
-                    time_info['input_buffer_adc_time']
-                    - self._first_time_info['input_buffer_adc_time']
+                time_info['input_buffer_adc_time']
+                - self._first_time_info['input_buffer_adc_time']
             )
             _timestamp_diff = (
-                    _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
+                _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
             )
             self._start_time = self.bt + _timestamp_diff
 
@@ -656,7 +656,7 @@ class FillErrorWithOnesMixin:
                 )  # use OR to mark any new error status flags
         else:
             if (
-                    self._first_error_timestamp is not None
+                self._first_error_timestamp is not None
             ):  # first ok status after there was an error status
                 zeroed_data, zeroed_count = self._fill_time_interval_with_ones(
                     self._first_error_timestamp, timestamp
@@ -682,7 +682,7 @@ class FillErrorWithOnesMixin:
         return None, PaCallbackReturnCodes.paContinue
 
     def _fill_time_interval_with_ones(
-            self, first_error_status_ts, first_ok_status_ts, fill_value=1
+        self, first_error_status_ts, first_ok_status_ts, fill_value=1
     ):
         """Create wf bytes of value zero for the entire duration of the error to replace garbled
         data
@@ -694,11 +694,11 @@ class FillErrorWithOnesMixin:
         """
 
         single_fill_sample = (
-                fill_value.to_bytes(self._init_kwargs['width'], 'little')
-                * self._init_kwargs['channels']
+            fill_value.to_bytes(self._init_kwargs['width'], 'little')
+            * self._init_kwargs['channels']
         )
         samples_per_time_unit = (
-                self._init_kwargs['rate'] / self.timestamp_seconds_to_unit_conversion
+            self._init_kwargs['rate'] / self.timestamp_seconds_to_unit_conversion
         )
 
         delta_time = first_ok_status_ts - first_error_status_ts
@@ -713,7 +713,7 @@ class DictDataMixin:
     """
 
     def data_to_append(
-            self, timestamp, waveform, frame_count, time_info, status_flags
+        self, timestamp, waveform, frame_count, time_info, status_flags
     ):  # pylint: disable=W0613
         """Simplify data only
 
@@ -765,10 +765,10 @@ class PyAudioSourceReaderWithOnedErrorsAndDictData(
 
 
 def _test_run_PyAudioSourceReader(
-        readerClass=PyAudioSourceReader,
-        timestamp_getter=lambda data: data[0],
-        in_data_getter=lambda data: data[1],
-        status_flags_getter=lambda data: data[4],
+    readerClass=PyAudioSourceReader,
+    timestamp_getter=lambda data: data[0],
+    in_data_getter=lambda data: data[1],
+    status_flags_getter=lambda data: data[4],
 ):
     """Run PyAudioSourceReader and print timestamp, byte length, status code, status flag
 
