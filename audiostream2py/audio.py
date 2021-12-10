@@ -118,7 +118,7 @@ def get_recording_device_info_by_name(name_pattern, assert_unique=True):
     return match_device_info(filt, assert_unique)
 
 
-def get_input_device_index(*, input_device=None, input_device_index=None, verbose=True):
+def get_input_device_index(input_device=None, input_device_index=None, verbose=True):
     info = None
     # You can't specify both input_device_index and input_device!
     if input_device is not None and input_device_index is not None:
