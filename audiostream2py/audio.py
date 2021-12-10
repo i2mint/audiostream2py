@@ -224,7 +224,7 @@ class PyAudioSourceReader(SourceReader):
         input_device_index = get_input_device_index(
             input_device=input_device,
             input_device_index=input_device_index,
-            verbose=verbose
+            verbose=verbose,
         )
         with self._pyaudio() as pa:
             input_format = pa.get_format_from_width(width, unsigned)
@@ -277,9 +277,9 @@ class PyAudioSourceReader(SourceReader):
     def __repr__(self):
         quote_strings = lambda x: f"'{x}'" if isinstance(x, str) else x
         args_string = ', '.join(
-            f"{k}={quote_strings(v)}" for k, v in self._init_kwargs.items()
+            f'{k}={quote_strings(v)}' for k, v in self._init_kwargs.items()
         )
-        return f"{type(self).__name__}({args_string})"
+        return f'{type(self).__name__}({args_string})'
 
     @classmethod
     def get_default_input_device_info(cls):
