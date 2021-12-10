@@ -118,7 +118,7 @@ def get_recording_device_info_by_name(name_pattern, assert_unique=True):
     return match_device_info(filt, assert_unique)
 
 
-def get_input_device_index(input_device=None, input_device_index=None, verbose=True):
+def get_input_device_index(*, input_device=None, input_device_index=None, verbose=True):
     info = None
     # You can't specify both input_device_index and input_device!
     if input_device is not None and input_device_index is not None:
@@ -137,7 +137,7 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
     else:
         input_device = input_device or input_device_index
         if isinstance(input_device, int):
-            info = input_device
+            info = {'index': input_device}
         elif isinstance(input_device, Callable):
             info = match_device_info(filt=input_device)
         else:  # should be string or re.compile instance
@@ -198,8 +198,8 @@ class PyAudioSourceReader(SourceReader):
         channels=1,
         input_device_index=None,
         frames_per_buffer=1024,
-        verbose=True,
         input_device=None,
+        verbose=True,
     ):
         """
 
@@ -209,14 +209,23 @@ class PyAudioSourceReader(SourceReader):
             Ignored if byte width is not 1.
         :param channels: The desired number of input channels.
             Ignored if input_device is not specified (or None).
-        :param input_device_index: Index of Input Device to use.
+        :param input_device: Specification of what input device to use.
+        :param input_device_index: Legacy specification of input Device to use.
+            Has to be the integer index, unlike input_device which can be a name too.
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
+        :param verbose: Permission to print stuff when we feel like it?
+
         """
 
         self._init_kwargs = {
             k: v for k, v in locals().items() if k not in ('self', '__class__')
         }
+        input_device_index = get_input_device_index(
+            input_device=input_device,
+            input_device_index=input_device_index,
+            verbose=verbose
+        )
         with self._pyaudio() as pa:
             input_format = pa.get_format_from_width(width, unsigned)
             pa.is_format_supported(
@@ -264,6 +273,13 @@ class PyAudioSourceReader(SourceReader):
         if self.data:
             self.data.clear()
         self.data = deque()
+
+    def __repr__(self):
+        quote_strings = lambda x: f"'{x}'" if isinstance(x, str) else x
+        args_string = ', '.join(
+            f"{k}={quote_strings(v)}" for k, v in self._init_kwargs.items()
+        )
+        return f"{type(self).__name__}({args_string})"
 
     @classmethod
     def get_default_input_device_info(cls):
