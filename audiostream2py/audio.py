@@ -132,8 +132,11 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
         if verbose:
             import json
 
-            print(f"Will use {info['name']} (index={info['index']}) as an input device")
-            print(f"It's info:\n{json.dumps(info, indent=2)}")
+            print(
+                f"Will use {info['name']} (index={info['index']}) as an input device",
+                end='\r',
+            )
+            print(f"It's info:\n{json.dumps(info, indent=2)}", end='\r')
     else:
         input_device = input_device or input_device_index
         if isinstance(input_device, int):
