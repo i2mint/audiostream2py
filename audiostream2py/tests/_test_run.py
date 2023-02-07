@@ -1,9 +1,10 @@
 """Test run PyAudioSourceReader and print info"""
 from audiostream2py import PyAudioSourceReader, PaStatusFlags
+from audiostream2py.audio import BasePyAudioSourceReader
 
 
 def _test_run_PyAudioSourceReader(
-    readerClass=PyAudioSourceReader,
+    readerClass=BasePyAudioSourceReader,
     timestamp_getter=lambda data: data[0],
     in_data_getter=lambda data: data[1],
     status_flags_getter=lambda data: data[4],
@@ -54,13 +55,14 @@ def _test_run_PyAudioSourceReader(
 
 
 if __name__ == '__main__':
-    _test_run_PyAudioSourceReader()
+    # _test_run_PyAudioSourceReader(input_device_index='NexiGo N930AF FHD Webcam Audio')
     # _test_run_PyAudioSourceReader(PyAudioSourceReaderRaiseOnError)
 
-    # from audiostream2py.mixins import PyAudioSourceReaderWithZeroedErrorsAndDictData
-    # _test_run_PyAudioSourceReader(
-    #     PyAudioSourceReaderWithZeroedErrorsAndDictData,
-    #     timestamp_getter=lambda data: data['bt'],
-    #     in_data_getter=lambda data: data['wf'],
-    #     status_flags_getter=lambda data: data['status_flags'],
-    # )
+    from audiostream2py import PyAudioSourceReader
+
+    _test_run_PyAudioSourceReader(
+        PyAudioSourceReader,
+        timestamp_getter=lambda data: data['bt'],
+        in_data_getter=lambda data: data['wf'],
+        status_flags_getter=lambda data: data['status_flags'],
+    )
