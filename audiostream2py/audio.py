@@ -613,7 +613,7 @@ class AudioDataMixin:
         :param data: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
         :return: AudioData
         """
-        return data
+        return data.start_date
 
 
 class PyAudioSourceReader(
