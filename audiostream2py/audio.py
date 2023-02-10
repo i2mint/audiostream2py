@@ -390,14 +390,16 @@ class BasePyAudioSourceReader(SourceReader):
         """
         status_flag = PaStatusFlags.paNoError
         buffer_end_timestamp = self.get_timestamp()
-        if buffer_end_timestamp < (_adjustment := self.buffer_end + frame_count / 1e6):
-            buffer_end_timestamp = _adjustment
-            status_flag = PaStatusFlags.hostTimeSync
 
         if self.buffer_end is None:
             t_len = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
             self.buffer_start = buffer_end_timestamp - t_len
         else:
+            if buffer_end_timestamp < (
+                _adjustment := self.buffer_end + frame_count / 1e6
+            ):
+                buffer_end_timestamp = _adjustment
+                status_flag = PaStatusFlags.hostTimeSync
             self.buffer_start = self.buffer_end
         self.buffer_end = buffer_end_timestamp
         return status_flag
