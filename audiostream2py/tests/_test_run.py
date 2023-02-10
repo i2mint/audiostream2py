@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     _test_run_PyAudioSourceReader(
         PyAudioSourceReader,
-        timestamp_getter=lambda data: data['bt'],
-        in_data_getter=lambda data: data['wf'],
-        status_flags_getter=lambda data: data['status_flags'],
+        timestamp_getter=lambda data: data.bt,
+        in_data_getter=lambda data: data.waveform,
+        status_flags_getter=lambda data: data.status_flags,
     )
