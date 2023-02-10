@@ -8,7 +8,7 @@ from functools import cached_property
 from typing import Union, Sequence, Tuple
 from dataclasses import dataclass
 
-from audiostream2py import PaStatusFlags
+from audiostream2py.enum import PaStatusFlags
 
 
 @dataclass(frozen=True)
