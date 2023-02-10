@@ -1,10 +1,12 @@
+"""PyAudioSourceReader Status Flag Enums"""
+
 from enum import IntFlag
 
 import pyaudio
 
 
 class PaStatusFlags(IntFlag):
-    """Enum to check status_flag for error codes
+    """Enum to check status_flag for error codes.
 
     >>> from audiostream2py.audio import PaStatusFlags
     >>> PaStatusFlags(0)
