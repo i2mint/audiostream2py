@@ -65,10 +65,10 @@ from typing import Generator, List, Callable, Union
 import re
 
 import pyaudio
-
 from stream2py import SourceReader
 from stream2py.utility.typing_hints import ComparableType
 
+from audiostream2py.reader import AudioBufferReader
 from audiostream2py.data import AudioData
 from audiostream2py.enum import PaCallbackReturnCodes, PaStatusFlags
 
@@ -591,6 +591,8 @@ class DictDataMixin:
 
 class AudioDataMixin:
     """Mixin to put data into AudioData"""
+
+    buffer_reader_class = AudioBufferReader  # BufferReader specific to AudioData
 
     def data_to_append(
         self, start_date, end_data, waveform, frame_count, time_info, status_flags
