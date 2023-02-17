@@ -621,4 +621,4 @@ class AudioDataMixin:
 class PyAudioSourceReader(
     AudioDataMixin, FillErrorWithOnesMixin, BasePyAudioSourceReader
 ):
-    """PyAudioSourceReader changed to handle errors and serve data in an easy-to-read dict."""
+    """PyAudioSourceReader changed to handle errors and serve data in an easy-to-read dataclass."""

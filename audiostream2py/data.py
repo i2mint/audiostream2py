@@ -38,8 +38,8 @@ class AudioData:
         """
         start_date = audio_datas[0].start_date
         end_date = audio_datas[-1].end_date
-        waveform = b''.join([ad.waveform for ad in audio_datas])
-        frame_count = sum([ad.frame_count for ad in audio_datas])
+        waveform = b''.join(ad.waveform for ad in audio_datas)
+        frame_count = sum(ad.frame_count for ad in audio_datas)
         status_flags = PaStatusFlags.paNoError
         for ad in audio_datas:
             status_flags |= PaStatusFlags(ad.status_flags)
@@ -83,23 +83,20 @@ class AudioData:
                     timestamp=index.start, rounding_type='ceil'
                 )
             else:
-                start_sample, start_date = None, self.start_date
+                start_sample, start_date = 0, self.start_date
 
             if index.stop is not None:
                 end_sample, end_date = self.nearest_sample_index_and_time(
                     timestamp=index.stop, rounding_type='floor'
                 )
             else:
-                end_sample, end_date = None, self.end_date
+                end_sample, end_date = self.frame_count, self.end_date
 
-            start = start_sample * self.frame_size if start_sample is not None else None
-            stop = end_sample * self.frame_size if end_sample is not None else None
+            start = start_sample * self.frame_size
+            stop = end_sample * self.frame_size
             step = index.step * self.frame_size if index.step is not None else None
             waveform = self.waveform[start:stop:step]
-            frame_count = (
-                end_sample if end_sample is not None else self.frame_count
-            ) - start_sample
-
+            frame_count = end_sample - start_sample
         else:
             sample_idx, start_date = self.nearest_sample_index_and_time(
                 timestamp=index, rounding_type='floor'
@@ -107,7 +104,6 @@ class AudioData:
             _, end_date = self.nearest_sample_index_and_time(
                 timestamp=index, rounding_type='ceil'
             )
-
             waveform = self.waveform[sample_idx : sample_idx + self.frame_size]
             frame_count = 1
 
@@ -139,10 +135,10 @@ class AudioData:
                 / (self.end_date - self.start_date)
                 * self.frame_count
             )
+        ) + (0 if rounding_type == 'ceil' else 1)
+        sample_time = self.start_date + (sample_idx) / self.frame_count * (
+            self.end_date - self.start_date
         )
-        sample_time = self.start_date + (
-            sample_idx + (0 if rounding_type == 'ceil' else 1)
-        ) / self.frame_count * (self.end_date - self.start_date)
         return sample_idx, sample_time
 
     def __repr__(self):
