@@ -28,7 +28,7 @@ jobs:
           sudo apt install -y libffi-dev libssl-dev libbz2-dev
           sudo apt install -y portaudio19-dev libsndfile-dev
           python -m pip install --upgrade pip
-          pip -q install axblack pytest pylint isee
+          pip -q install axblack pytest pylint isee recode
           isee install-requires
 
       - name: Format source code
