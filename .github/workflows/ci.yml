@@ -28,7 +28,7 @@ jobs:
           sudo apt install -y libffi-dev libssl-dev libbz2-dev
           sudo apt install -y portaudio19-dev libsndfile-dev
           python -m pip install --upgrade pip
-          pip -q install axblack pytest pylint isee
+          pip -q install axblack pytest pylint isee recode
           isee install-requires
 
       - name: Format source code
@@ -59,8 +59,8 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config --global user.email "thorwhalen1@gmail.com"
-          git config --global user.name "GitHub CI Runner"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
