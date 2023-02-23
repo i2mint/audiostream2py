@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>audiostream2py.tests.utils_for_testing &mdash; audiostream2py 0.1.12 documentation</title><link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script src="../../../_static/toggleprompt.js"></script>
+        <script src="../../../_static/clipboard.min.js"></script>
+        <script src="../../../_static/copybutton.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="PyAudio Source" href="../audio.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            audiostream2py
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../audiostream2py.html">audiostream2py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio.html">PyAudio Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio.html#pyaudio-mixins">PyAudio Mixins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio.html#example-pyaudio-mixin-usage">Example PyAudio Mixin Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">audiostream2py.tests.utils_for_testing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">audiostream2py</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">audiostream2py.tests.utils_for_testing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/module_docs/audiostream2py/tests/utils_for_testing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-audiostream2py.tests.utils_for_testing">
+<span id="audiostream2py-tests-utils-for-testing"></span><h1>audiostream2py.tests.utils_for_testing<a class="headerlink" href="#module-audiostream2py.tests.utils_for_testing" title="Permalink to this headline">¶</a></h1>
+<p>Utils for testing</p>
+<p>Generate waveforms with <code class="docutils literal notranslate"><span class="pre">inverted_tiles_wf</span></code> or chunks thereof with <cite>inverted_tiles</cite>.</p>
+<dl class="py function">
+<dt id="audiostream2py.tests.utils_for_testing.inverted_tiles">
+<code class="sig-prename descclassname">audiostream2py.tests.utils_for_testing.</code><code class="sig-name descname">inverted_tiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">motif</span><span class="o">=</span><span class="default_value">(1, 2, 3, 4, 5)</span></em>, <em class="sig-param"><span class="n">cap</span><span class="o">=</span><span class="default_value">20000</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/audiostream2py/tests/utils_for_testing.html#inverted_tiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.tests.utils_for_testing.inverted_tiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Infinite generator of chunks taken by transforming the input motif.
+The iterative transformation is constituted of a translation by the length of the
+motif and an inversion of the sign.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>motif</strong> – The iterable to use as the (incremented and inverted) pattern to
+make waveforms out of.</p></li>
+<li><p><strong>cap</strong> – The maximum absolute value to include in a waveform.
+Also determines when we resset the chk to be the motif.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">inverted_tiles</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">([1, 2, 3, 4, 5], [-6, -7, -8, -9, -10], [11, 12, 13, 14, 15])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">inverted_tiles</span><span class="p">(</span><span class="n">motif</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="o">*</span><span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="o">*</span><span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="o">*</span><span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">),</span> <span class="o">*</span><span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)]</span>
+<span class="go">[1, 2, 3, -4, -5, -6, 7, 8, 9, -10, -11, -12]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt id="audiostream2py.tests.utils_for_testing.inverted_tiles_wf">
+<code class="sig-prename descclassname">audiostream2py.tests.utils_for_testing.</code><code class="sig-name descname">inverted_tiles_wf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">motif</span><span class="o">=</span><span class="default_value">(1, 2, 3, 4, 5)</span></em>, <em class="sig-param"><span class="n">cap</span><span class="o">=</span><span class="default_value">20000</span></em>, <em class="sig-param"><span class="n">wf_length</span><span class="o">=</span><span class="default_value">43008</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/audiostream2py/tests/utils_for_testing.html#inverted_tiles_wf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.tests.utils_for_testing.inverted_tiles_wf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a (possibly infinite) waveform through inverted_tiles chunks</p>
+<p>These waveforms are originally meant to be used with [1,…,n] motifs and used for
+diagnosis. Indeed, the samples alternate sign (so waveform can be made audible),
+but checking for the absolute value of the samples, you should see incrementing
+integers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>motif</strong> – The iterable to use as the (incremented and inverted) pattern to
+make waveforms out of.</p></li>
+<li><p><strong>cap</strong> – The maximum absolute value to include in a waveform.
+Also determines when we resset the chk to be the motif.</p></li>
+<li><p><strong>wf_length</strong> – Length of the desired waveform, or None for an infinite iterable</p></li>
+</ul>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wf</span> <span class="o">=</span> <span class="n">inverted_tiles_wf</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">wf</span><span class="p">)</span>
+<span class="go">43008</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wf</span><span class="p">[:</span><span class="mi">15</span><span class="p">]</span>
+<span class="go">[1, 2, 3, 4, 5, -6, -7, -8, -9, -10, 11, 12, 13, 14, 15]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inverted_tiles_wf</span><span class="p">(</span><span class="n">motif</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">cap</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">wf_length</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="go">[1, 2, 3, -4, -5, -6, 7, 8, 9, -10, -11, -12, 1, 2, 3]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../audio.html" class="btn btn-neutral float-left" title="PyAudio Source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
