@@ -82,19 +82,33 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           isee update-setup-cfg
 
-      - name: Generate Documentation
-        run: isee generate-documentation
-
       - name: Package
         run: python setup.py sdist
 
       - name: Publish
         run: |
           twine upload dist/$PROJECT_NAME-$VERSION.tar.gz -u ${{ secrets.PYPI_USERNAME }} -p ${{ secrets.PYPI_PASSWORD }} --non-interactive  --skip-existing --disable-progress-bar
-          epythet make . github
 
       - name: Push Changes
         run: pack check-in "**CI** Formatted code + Updated version number and documentation. [skip ci]" --auto-choose-default-action --bypass-docstring-validation --bypass-tests --bypass-code-formatting --verbose
 
       - name: Tag Repository
         run: isee tag-repo $VERSION
+
+  github-pages:
+    name: Publish GitHub Pages
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt update -y
+          sudo apt install -y curl gcc git
+          sudo apt install -y software-properties-common
+          sudo apt install -y python-all-dev python3-distutils python3-apt
+          sudo apt install -y libffi-dev libssl-dev libbz2-dev
+          sudo apt install -y portaudio19-dev libsndfile-dev
+
+      - uses: i2mint/epythet/actions/publish-github-pages@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
