@@ -3,12 +3,16 @@
 from typing import List
 
 from stream2py import BufferReader
-from creek.infinite_sequence import (
-    OverlapsPastError,
-    OverlapsFutureError,
-)
 
 from audiostream2py.data import AudioData
+
+
+class OverlapsPastError(IndexError):
+    pass
+
+
+class OverlapsFutureError(IndexError):
+    pass
 
 
 class AudioBufferReader(BufferReader):
