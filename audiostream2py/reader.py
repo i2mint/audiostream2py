@@ -1,10 +1,10 @@
-"""BufferReader specific to AudioData"""
+"""BufferReader specific to AudioSegment"""
 
 from typing import List
 
 from stream2py import BufferReader
 
-from audiostream2py.data import AudioData
+from audiostream2py.data import AudioSegment
 
 
 class OverlapsPastError(IndexError):
@@ -16,22 +16,22 @@ class OverlapsFutureError(IndexError):
 
 
 class AudioBufferReader(BufferReader):
-    def __getitem__(self, item) -> AudioData:
+    def __getitem__(self, item) -> AudioSegment:
         if isinstance(item, slice):
-            return self.slice(item)
+            return self.get_slice(item)
         with self._buffer.reader_lock() as reader:
             return reader.find_le(item)
 
-    def slice(self, s: slice) -> AudioData:
-        """Slice starting from start_date and stopping at end_date. Trims first and last AudioData
-        based on timestamps. Then joins all the AudioData objects.
+    def get_slice(self, s: slice) -> AudioSegment:
+        """Slice starting from start_date and stopping at end_date. Trims first and last
+        AudioSegment based on timestamps. Then joins all the AudioSegment objects.
 
         :param s: slice object
-        :return: concatenated AudioData
+        :return: concatenated AudioSegment
         """
         with self._buffer.reader_lock() as reader:
             if s.start:
-                head: AudioData = reader[0]
+                head: AudioSegment = reader[0]
                 if s.start < head.start_date:
                     raise OverlapsPastError(
                         f'You asked for {s}, but the buffer starts from: {head.start_date}'
@@ -41,7 +41,7 @@ class AudioBufferReader(BufferReader):
                 start = None
 
             if s.stop:
-                tail: AudioData = reader[-1]
+                tail: AudioSegment = reader[-1]
                 if s.stop > tail.end_date:
                     raise OverlapsFutureError(
                         f'You asked for {s}, but the buffer stops at: {tail.end_date}'
@@ -53,9 +53,9 @@ class AudioBufferReader(BufferReader):
             else:
                 stop = None
 
-            items: List[AudioData] = reader.range(start, stop, s.step)
+            items: List[AudioSegment] = reader.range(start, stop, s.step)
         if s.start:
             items[0] = items[0][s.start :]
         if s.stop:
             items[-1] = items[-1][: s.stop]
-        return AudioData.concatenate(items)
+        return AudioSegment.concatenate(items)

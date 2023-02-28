@@ -55,7 +55,7 @@ __all__ = [
     'PaStatusFlags',
     'PaCallbackReturnCodes',
     'get_input_device_index',
-    'AudioData',
+    'AudioSegment',
 ]
 
 from collections import deque
@@ -69,7 +69,7 @@ from stream2py import SourceReader
 from stream2py.utility.typing_hints import ComparableType
 
 from audiostream2py.reader import AudioBufferReader
-from audiostream2py.data import AudioData
+from audiostream2py.data import AudioSegment
 from audiostream2py.enum import PaCallbackReturnCodes, PaStatusFlags
 
 
@@ -112,9 +112,12 @@ def is_recording_device(device_info: dict):
 def get_recording_device_info_by_name(name_pattern, assert_unique=True):
     """Find a recording device by matching name pattern and return info dict"""
     name_pattern = re.compile(name_pattern)
-    filt = lambda device_info: name_pattern.search(
-        device_info['name']
-    ) and is_recording_device(device_info)
+
+    def filt(device_info):
+        return name_pattern.search(device_info['name']) and is_recording_device(
+            device_info
+        )
+
     return match_device_info(filt, assert_unique)
 
 
@@ -127,7 +130,7 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
             f'{input_device=} and {input_device_index=}'
         )
     # If no information on the device is given, ask pyaudio to find a default
-    elif input_device is None and input_device_index is None:
+    if input_device is None and input_device_index is None:
         info = PyAudioSourceReader.get_default_input_device_info()
         if verbose:
             import json
@@ -146,14 +149,6 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
         else:  # should be string or re.compile instance
             info = get_recording_device_info_by_name(name_pattern=input_device)
     return info['index']
-
-
-# Note: Keeping around for (approx) back-compatibility
-def find_a_default_input_device_index(verbose=True):
-    from warnings import warn
-
-    warn('Deprecating find_a_default_input_device_index. Use get_input_device_index')
-    return get_input_device_index(verbose=verbose)
 
 
 class BasePyAudioSourceReader(SourceReader):
@@ -187,7 +182,7 @@ class BasePyAudioSourceReader(SourceReader):
         :param verbose: Permission to print stuff when we feel like it?
 
         """
-
+        super().__init__()
         self._init_kwargs = {
             k: v for k, v in locals().items() if k not in ('self', '__class__')
         }
@@ -226,6 +221,8 @@ class BasePyAudioSourceReader(SourceReader):
         self._fp = None
         self._open_time = None
         self.data = deque()
+        self.buffer_start = None
+        self.buffer_end = None
         self._init_vars()
 
     def _init_vars(self):
@@ -239,7 +236,9 @@ class BasePyAudioSourceReader(SourceReader):
         self.buffer_end = None
 
     def __repr__(self):
-        quote_strings = lambda x: f"'{x}'" if isinstance(x, str) else x
+        def quote_strings(x):
+            return f"'{x}'" if isinstance(x, str) else x
+
         args_string = ', '.join(
             f'{k}={quote_strings(v)}' for k, v in self._init_kwargs.items()
         )
@@ -589,15 +588,21 @@ class DictDataMixin:
         return data['tt']
 
 
-class AudioDataMixin:
-    """Mixin to put data into AudioData"""
+class AudioSegmentMixin:
+    """Mixin to put data into AudioSegment"""
 
-    buffer_reader_class = AudioBufferReader  # BufferReader specific to AudioData
+    buffer_reader_class = AudioBufferReader  # BufferReader specific to AudioSegment
 
     def data_to_append(
-        self, start_date, end_data, waveform, frame_count, time_info, status_flags
-    ) -> AudioData:  # pylint: disable=W0613
-        """Puts data into AudioData
+        self,
+        start_date,
+        end_data,
+        waveform,
+        frame_count,
+        time_info,  # pylint: disable=W0613
+        status_flags,
+    ) -> AudioSegment:
+        """Puts data into AudioSegment
 
         :param start_date: starting timestamp
         :param end_data: ending timestamp
@@ -607,18 +612,18 @@ class AudioDataMixin:
         :param status_flags: PaStatusFlags error codes
         :return: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
         """
-        return AudioData(start_date, end_data, waveform, frame_count, status_flags)
+        return AudioSegment(start_date, end_data, waveform, frame_count, status_flags)
 
-    def key(self, data: AudioData) -> ComparableType:
-        """AudioData is a ComparableType
+    def key(self, data: AudioSegment) -> ComparableType:
+        """AudioSegment is a ComparableType
 
         :param data: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
-        :return: AudioData
+        :return: AudioSegment
         """
         return data.start_date
 
 
 class PyAudioSourceReader(
-    AudioDataMixin, FillErrorWithOnesMixin, BasePyAudioSourceReader
+    AudioSegmentMixin, FillErrorWithOnesMixin, BasePyAudioSourceReader
 ):
     """PyAudioSourceReader changed to handle errors and serve data in an easy-to-read dataclass."""

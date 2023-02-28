@@ -1,7 +1,7 @@
-"""Tests for AudioData"""
+"""Tests for AudioSegment"""
 import math
 
-from audiostream2py import AudioData, PaStatusFlags
+from audiostream2py import AudioSegment, PaStatusFlags
 from recode import decode_pcm_bytes
 
 
@@ -12,7 +12,7 @@ def mock_audio_data(rate: int, width: int, channels: int, frames_per_buffer: int
             i.to_bytes(width, 'little') * channels for i in range(frames_per_buffer)
         )
 
-    return AudioData(
+    return AudioSegment(
         start_date=0,
         end_date=1e6 * frames_per_buffer / rate,
         waveform=mock_pcm_bytes(),
