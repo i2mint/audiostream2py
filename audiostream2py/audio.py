@@ -55,22 +55,22 @@ __all__ = [
     'PaStatusFlags',
     'PaCallbackReturnCodes',
     'get_input_device_index',
+    'AudioSegment',
 ]
 
 from collections import deque
 from contextlib import suppress, contextmanager
-from enum import IntFlag
 import math
-import operator
-from typing import Generator, List, Callable
+from typing import Generator, List, Callable, Union
 import re
 
 import pyaudio
-
 from stream2py import SourceReader
 from stream2py.utility.typing_hints import ComparableType
 
-_ITEMGETTER_0 = operator.itemgetter(0)
+from audiostream2py.reader import AudioBufferReader
+from audiostream2py.data import AudioSegment
+from audiostream2py.enum import PaCallbackReturnCodes, PaStatusFlags
 
 
 def list_recording_device_index_names():
@@ -112,9 +112,12 @@ def is_recording_device(device_info: dict):
 def get_recording_device_info_by_name(name_pattern, assert_unique=True):
     """Find a recording device by matching name pattern and return info dict"""
     name_pattern = re.compile(name_pattern)
-    filt = lambda device_info: name_pattern.search(
-        device_info['name']
-    ) and is_recording_device(device_info)
+
+    def filt(device_info):
+        return name_pattern.search(device_info['name']) and is_recording_device(
+            device_info
+        )
+
     return match_device_info(filt, assert_unique)
 
 
@@ -127,7 +130,7 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
             f'{input_device=} and {input_device_index=}'
         )
     # If no information on the device is given, ask pyaudio to find a default
-    elif input_device is None and input_device_index is None:
+    if input_device is None and input_device_index is None:
         info = PyAudioSourceReader.get_default_input_device_info()
         if verbose:
             import json
@@ -148,48 +151,7 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
     return info['index']
 
 
-# Note: Keeping around for (approx) back-compatibility
-def find_a_default_input_device_index(verbose=True):
-    from warnings import warn
-
-    warn('Deprecating find_a_default_input_device_index. Use get_input_device_index')
-    return get_input_device_index(verbose=verbose)
-
-
-class PaStatusFlags(IntFlag):
-    """Enum to check status_flag for error codes
-
-    >>> from audiostream2py.audio import PaStatusFlags
-    >>> PaStatusFlags(0)
-    <PaStatusFlags.paNoError: 0>
-    >>> PaStatusFlags(2)
-    <PaStatusFlags.paInputOverflow: 2>
-    >>> PaStatusFlags(3)
-    <PaStatusFlags.paInputOverflow|paInputUnderflow: 3>
-    >>> PaStatusFlags.paInputOverflow in PaStatusFlags(3)  # Check if contains certain error
-    True
-    >>> PaStatusFlags.paNoError == PaStatusFlags(3)  # Check for no error
-    False
-    """
-
-    paNoError = pyaudio.paNoError
-    paInputUnderflow = pyaudio.paInputUnderflow
-    paInputOverflow = pyaudio.paInputOverflow
-    paOutputUnderflow = pyaudio.paOutputUnderflow
-    paOutputOverflow = pyaudio.paOutputOverflow
-    paPrimingOutput = pyaudio.paPrimingOutput
-
-
-class PaCallbackReturnCodes(IntFlag):
-    """Enum of valid _stream_callback return codes.
-    Only used by PyAudioSourceReader._stream_callback"""
-
-    paContinue = pyaudio.paContinue
-    paComplete = pyaudio.paComplete
-    paAbort = pyaudio.paAbort
-
-
-class PyAudioSourceReader(SourceReader):
+class BasePyAudioSourceReader(SourceReader):
     _pyaudio_instance = None
 
     def __init__(
@@ -220,7 +182,7 @@ class PyAudioSourceReader(SourceReader):
         :param verbose: Permission to print stuff when we feel like it?
 
         """
-
+        super().__init__()
         self._init_kwargs = {
             k: v for k, v in locals().items() if k not in ('self', '__class__')
         }
@@ -257,28 +219,26 @@ class PyAudioSourceReader(SourceReader):
         }
 
         self._fp = None
-        self._first_time_info = None
-        self.frame_index = 0
-        self.bt = -1
-        self._start_time = self.bt
-        self.data = None
-
+        self._open_time = None
+        self.data = deque()
+        self.buffer_start = None
+        self.buffer_end = None
         self._init_vars()
 
     def _init_vars(self):
         if self._fp:
             self.close()
         self._fp = None
-        self._first_time_info = None
-        self.frame_index = 0
-        self.bt = -1
-        self._start_time = self.bt
         if self.data:
             self.data.clear()
-        self.data = deque()
+
+        self.buffer_start = None
+        self.buffer_end = None
 
     def __repr__(self):
-        quote_strings = lambda x: f"'{x}'" if isinstance(x, str) else x
+        def quote_strings(x):
+            return f"'{x}'" if isinstance(x, str) else x
+
         args_string = ', '.join(
             f'{k}={quote_strings(v)}' for k, v in self._init_kwargs.items()
         )
@@ -297,6 +257,10 @@ class PyAudioSourceReader(SourceReader):
         )
         one_third_read_rate = seconds_per_read / 3
         return one_third_read_rate
+
+    @property
+    def sr(self) -> Union[int, float]:
+        return self._init_kwargs['rate']
 
     @property
     def info(self) -> dict:
@@ -332,7 +296,7 @@ class PyAudioSourceReader(SourceReader):
 
         :return: dict
         """
-        _info = {'bt': self.bt}
+        _info = {'start_date': self._open_time}
         _info.update(**self._init_kwargs)
         with suppress(Exception):
             _info.update(
@@ -344,31 +308,32 @@ class PyAudioSourceReader(SourceReader):
 
     def key(self, data) -> ComparableType:
         """
-        :param data: (timestamp, waveform, frame_count, time_info, status_flags)
+        :param data: (start_date, end_date, waveform, frame_count, time_info, status_flags)
         :return: timestamp
         """
-        return _ITEMGETTER_0(data)
+        return data[1]
 
-    def data_to_append(self, timestamp, waveform, frame_count, time_info, status_flags):
-        """Can to be overloaded to change the shape of read outputs by altering the return value.
-        The key function must also be overloaded to return timestamp from the new shape.
+    def data_to_append(
+        self, start_date, end_date, waveform, frame_count, time_info, status_flags
+    ):
+        """Overloaded data_to_append method change the shape of read outputs of PyAudioSourceReader.
+        The key method must also be overloaded to return timestamp from the new shape.
 
-        :param timestamp: start time of waveform
-        :param waveform: recorded input data
-        :param frame_count: number of frames, sample count
-        :param time_info: dict,
-            see http://portaudio.com/docs/v19-doxydocs/structPaStreamCallbackTimeInfo.html
+        :param start_date: bt timestamp
+        :param end_date: tt timestamp
+        :param waveform: recorded input frames in bytes
+        :param frame_count: number of frames, sample count or waveform
+        :param time_info: http://portaudio.com/docs/v19-doxydocs/structPaStreamCallbackTimeInfo.html
         :param status_flags: PaStatusFlags
-        :return: (timestamp, waveform, frame_count, time_info, status_flags)
+        :return: (start_date, end_data, waveform, frame_count, time_info, status_flags)
         """
-        return timestamp, waveform, frame_count, time_info, status_flags
+        return start_date, end_date, waveform, frame_count, time_info, status_flags
 
     def open(self):
         """Will first close if already open and clear any data before starting the audio stream"""
         self._init_vars()
         self._init_pyaudio()
-        self.bt = self.get_timestamp()
-        self._start_time = self.bt
+        self._open_time = self.get_timestamp()
         self._fp = self._pyaudio_instance.open(**self._pyaudio_open_params)
 
     def close(self):
@@ -389,10 +354,9 @@ class PyAudioSourceReader(SourceReader):
         return None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """Calculates timestamp based on open() bt and frames read.
-        If there is an error conveyed by status_flags, the frame count is reset to 0 and starting
-        timestamp is shifted from open() bt by time_info to approximate actual time in case of
-        sample loss.
+        """Get buffer end timestamp based on the system time when data is sent to callback. Buffer
+        start timestamp is the buffer end of the last buffer. The very first start timestamp is
+        calculated back with frame count and sample rate.
         See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream
 
         :param in_data: recorded input data, waveform
@@ -401,37 +365,43 @@ class PyAudioSourceReader(SourceReader):
         :param status_flags: PaStatusFlags
         :return: None, PaCallbackReturnCodes.paContinue
         """
-        if not self._first_time_info:
-            self._first_time_info = time_info
-
-        if self.frame_index == 0:
-            # set start time based on audio time_info difference
-            _time_info_diff_s = (
-                time_info['input_buffer_adc_time']
-                - self._first_time_info['input_buffer_adc_time']
-            )
-            _timestamp_diff = (
-                _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
-            )
-            self._start_time = self.bt + _timestamp_diff
-
-        _frame_time_s = self.frame_index / self._init_kwargs['rate']
-        timestamp = int(
-            self._start_time + _frame_time_s * self.timestamp_seconds_to_unit_conversion
-        )
-
+        _additional_status_flags = self._set_buffer_start_end(frame_count)
+        status_flags = PaStatusFlags(status_flags) | _additional_status_flags
         self.data.append(
             self.data_to_append(
-                timestamp, in_data, frame_count, time_info, status_flags
+                self.buffer_start,
+                self.buffer_end,
+                in_data,
+                frame_count,
+                time_info,
+                status_flags,
             )
         )
-
-        if PaStatusFlags(status_flags) != PaStatusFlags.paNoError:
-            # reset frame index and thus self._start_time on any error status
-            self.frame_index = 0
-        else:
-            self.frame_index += frame_count
         return None, PaCallbackReturnCodes.paContinue
+
+    def _set_buffer_start_end(self, frame_count):
+        """Set buffer end timestamp based on the system time when data is sent to callback. Buffer
+        start timestamp is the buffer end of the last buffer. The very first start timestamp is
+        calculated back with frame count and sample rate.
+
+        :param frame_count: used to estimate start time of very first buffer
+        :return: status flag
+        """
+        status_flag = PaStatusFlags.paNoError
+        buffer_end_timestamp = self.get_timestamp()
+
+        if self.buffer_end is None:
+            t_len = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
+            self.buffer_start = buffer_end_timestamp - t_len
+        else:
+            if buffer_end_timestamp < (
+                _adjustment := self.buffer_end + frame_count / 1e6
+            ):
+                buffer_end_timestamp = _adjustment
+                status_flag = PaStatusFlags.hostTimeSync
+            self.buffer_start = self.buffer_end
+        self.buffer_end = buffer_end_timestamp
+        return status_flag
 
     @classmethod
     def _init_pyaudio(cls) -> pyaudio.PyAudio:
@@ -503,113 +473,16 @@ class PyAudioSourceReader(SourceReader):
         )
 
 
-class FillErrorWithZeroesMixin:
-    """Mixin to handle all pyaudio's error status flags by filling the error time gap with zeros"""
-
-    _first_error_timestamp = None
-    _error_status_flag = None
-
-    def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """On status flag error code, reate wf bytes of value zero for the entire duration of the
-        error to replace garbled data in addtion to the base behavior.
-
-        :param in_data: recorded input data, waveform
-        :param frame_count: number of frames, sample count
-        :param time_info: dictionary
-        :param status_flags: PaStatusFlags
-        :return: None, PaCallbackReturnCodes.paContinue
-        """
-        if not self._first_time_info:
-            self._first_time_info = time_info
-
-        if self.frame_index == 0:
-            # set start time based on audio time_info difference
-            _time_info_diff_s = (
-                time_info['input_buffer_adc_time']
-                - self._first_time_info['input_buffer_adc_time']
-            )
-            _timestamp_diff = (
-                _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
-            )
-            self._start_time = self.bt + _timestamp_diff
-
-        _frame_time_s = self.frame_index / self._init_kwargs['rate']
-        timestamp = int(
-            self._start_time + _frame_time_s * self.timestamp_seconds_to_unit_conversion
-        )
-
-        if PaStatusFlags(status_flags) != PaStatusFlags.paNoError:
-            # reset frame index and thus self._start_time on any error status
-            self.frame_index = 0
-            if self._first_error_timestamp is None:
-                self._first_error_timestamp = timestamp  # track when errors started
-                self._error_status_flag = PaStatusFlags(
-                    status_flags
-                )  # track what errors occured
-            else:
-                self._error_status_flag |= PaStatusFlags(
-                    status_flags
-                )  # use OR to mark any new error status flags
-        else:
-            if (
-                self._first_error_timestamp is not None
-            ):  # first ok status after there was an error status
-                (zeroed_data, zeroed_count,) = self._fill_time_interval_with_zeroes(
-                    self._first_error_timestamp, timestamp
-                )
-                self.data.append(
-                    self.data_to_append(
-                        self._first_error_timestamp,
-                        zeroed_data,
-                        zeroed_count,
-                        time_info,
-                        self._error_status_flag,
-                    )
-                )
-                self._first_error_timestamp = None
-                self._error_status_flag = None
-
-            self.data.append(
-                self.data_to_append(
-                    timestamp, in_data, frame_count, time_info, status_flags
-                )
-            )
-            self.frame_index += frame_count
-        return None, PaCallbackReturnCodes.paContinue
-
-    def _fill_time_interval_with_zeroes(
-        self, first_error_status_ts, first_ok_status_ts
-    ):
-        """Create wf bytes of value zero for the entire duration of the error to replace garbled
-        data
-
-        :param first_error_status_ts: Error bt
-        :param first_ok_status_ts: Error tt
-        :return: in_data, frame_count
-        """
-
-        single_zero_sample = (
-            b'\x00' * self._init_kwargs['channels'] * self._init_kwargs['width']
-        )  # interleaved zeros
-        samples_per_time_unit = (
-            self._init_kwargs['rate'] / self.timestamp_seconds_to_unit_conversion
-        )
-
-        delta_time = first_ok_status_ts - first_error_status_ts
-        sample_count = int(delta_time * samples_per_time_unit)
-        wf_bytes = single_zero_sample * sample_count
-        return wf_bytes, sample_count
-
-
 class FillErrorWithOnesMixin:
     """Mixin to handle all pyaudio's error status flags by filling the error time gap with zeros"""
 
+    FILL_VALUE = 1
     _first_error_timestamp = None
     _error_status_flag = None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """On status flag error code, reate wf bytes of value zero for the entire duration of the
-        error to replace garbled data in addtion to the base behavior.
+        """On paInputOverflow status flag error code, create wf bytes of value one for the entire
+        duration of the error to replace garbled data in addition to the base behavior.
 
         :param in_data: recorded input data, waveform
         :param frame_count: number of frames, sample count
@@ -617,51 +490,34 @@ class FillErrorWithOnesMixin:
         :param status_flags: PaStatusFlags
         :return: None, PaCallbackReturnCodes.paContinue
         """
-        if not self._first_time_info:
-            self._first_time_info = time_info
 
-        if self.frame_index == 0:
-            # set start time based on audio time_info difference
-            _time_info_diff_s = (
-                time_info['input_buffer_adc_time']
-                - self._first_time_info['input_buffer_adc_time']
-            )
-            _timestamp_diff = (
-                _time_info_diff_s * self.timestamp_seconds_to_unit_conversion
-            )
-            self._start_time = self.bt + _timestamp_diff
-
-        _frame_time_s = self.frame_index / self._init_kwargs['rate']
-        timestamp = int(
-            self._start_time + _frame_time_s * self.timestamp_seconds_to_unit_conversion
-        )
-
-        if PaStatusFlags(status_flags) != PaStatusFlags.paNoError:
-            # reset frame index and thus self._start_time on any error status
-            self.frame_index = 0
+        if PaStatusFlags(status_flags) == PaStatusFlags.paInputOverflow:
+            self.buffer_start = None
             if self._first_error_timestamp is None:
-                self._first_error_timestamp = timestamp  # track when errors started
-                self._error_status_flag = PaStatusFlags(
-                    status_flags
-                )  # track what errors occured
+                # track when errors started
+                self._first_error_timestamp = self.buffer_end
+                # track what errors occurred
+                self._error_status_flag = PaStatusFlags(status_flags)
             else:
-                self._error_status_flag |= PaStatusFlags(
-                    status_flags
-                )  # use OR to mark any new error status flags
+                # use OR to mark any new error status flags
+                self._error_status_flag |= PaStatusFlags(status_flags)
         else:
-            if (
-                self._first_error_timestamp is not None
-            ):  # first ok status after there was an error status
-                zeroed_data, zeroed_count = self._fill_time_interval_with_ones(
-                    self._first_error_timestamp, timestamp
+            _additional_status_flags = self._set_buffer_start_end(frame_count)
+            status_flags = PaStatusFlags(status_flags) | _additional_status_flags
+
+            if self._first_error_timestamp is not None:
+                # first ok status after there was an error status
+                fill_data, fill_count = self._fill_time_interval_with_ones(
+                    self._first_error_timestamp, self.buffer_start
                 )
                 self.data.append(
                     self.data_to_append(
                         self._first_error_timestamp,
-                        zeroed_data,
-                        zeroed_count,
-                        time_info,
-                        self._error_status_flag,
+                        self.buffer_start,
+                        fill_data,
+                        fill_count,
+                        {},
+                        self._error_status_flag | status_flags,
                     )
                 )
                 self._first_error_timestamp = None
@@ -669,31 +525,30 @@ class FillErrorWithOnesMixin:
 
             self.data.append(
                 self.data_to_append(
-                    timestamp, in_data, frame_count, time_info, status_flags
+                    self.buffer_start,
+                    self.buffer_end,
+                    in_data,
+                    frame_count,
+                    time_info,
+                    status_flags,
                 )
             )
-            self.frame_index += frame_count
         return None, PaCallbackReturnCodes.paContinue
 
-    def _fill_time_interval_with_ones(
-        self, first_error_status_ts, first_ok_status_ts, fill_value=1
-    ):
+    def _fill_time_interval_with_ones(self, first_error_status_ts, first_ok_status_ts):
         """Create wf bytes of value zero for the entire duration of the error to replace garbled
         data
 
         :param first_error_status_ts: Error bt
         :param first_ok_status_ts: Error tt
-        :param fill_value: default is 1
         :return: in_data, frame_count
         """
 
         single_fill_sample = (
-            fill_value.to_bytes(self._init_kwargs['width'], 'little')
+            self.FILL_VALUE.to_bytes(self._init_kwargs['width'], 'little')
             * self._init_kwargs['channels']
         )
-        samples_per_time_unit = (
-            self._init_kwargs['rate'] / self.timestamp_seconds_to_unit_conversion
-        )
+        samples_per_time_unit = self.sr / self.timestamp_seconds_to_unit_conversion
 
         delta_time = first_ok_status_ts - first_error_status_ts
         sample_count = int(delta_time * samples_per_time_unit)
@@ -702,110 +557,73 @@ class FillErrorWithOnesMixin:
 
 
 class DictDataMixin:
-    """Mixin to reduce data to a dict with bt, wf, and status_flag. Removing typically discarded
+    """Mixin to reduce data to a dict with bt, tt, wf, and status_flag. Removing typically discarded
     information.
     """
 
     def data_to_append(
-        self, timestamp, waveform, frame_count, time_info, status_flags
+        self, start_date, end_data, waveform, frame_count, time_info, status_flags
     ):  # pylint: disable=W0613
         """Simplify data only
 
         :param timestamp: start time of waveform
         :param waveform: recorded input data
-        :param frame_count: discarded data
-        :param time_info: discarded data
+        :param frame_count: discarded
+        :param time_info: discarded
         :param status_flags: PaStatusFlags error codes
         :return: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
         """
-        return {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
+        return {
+            'bt': start_date,
+            'tt': end_data,
+            'wf': waveform,
+            'status_flags': status_flags,
+        }
 
     def key(self, data) -> ComparableType:
         """
         :param data: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
-        :return: data['bt']
+        :return: data['tt']
         """
-        return data['bt']
+        return data['tt']
 
 
-class RaiseRuntimeErrorOnStatusFlagMixin:
-    """Mixin to raise RuntimeError when status_flag is not PaStatusFlags.paNoError (0)"""
+class AudioSegmentMixin:
+    """Mixin to put data into AudioSegment"""
 
-    def data_to_append(self, timestamp, waveform, frame_count, time_info, status_flags):
-        if PaStatusFlags.paNoError != PaStatusFlags(status_flags):
-            raise RuntimeError(PaStatusFlags(status_flags))
+    buffer_reader_class = AudioBufferReader  # BufferReader specific to AudioSegment
 
-        return super().data_to_append(
-            timestamp, waveform, frame_count, time_info, status_flags
-        )
+    def data_to_append(
+        self,
+        start_date,
+        end_data,
+        waveform,
+        frame_count,
+        time_info,  # pylint: disable=W0613
+        status_flags,
+    ) -> AudioSegment:
+        """Puts data into AudioSegment
+
+        :param start_date: starting timestamp
+        :param end_data: ending timestamp
+        :param waveform: recorded input data
+        :param frame_count: frame count of current buffer
+        :param time_info: discarded
+        :param status_flags: PaStatusFlags error codes
+        :return: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
+        """
+        return AudioSegment(start_date, end_data, waveform, frame_count, status_flags)
+
+    def key(self, data: AudioSegment) -> ComparableType:
+        """AudioSegment is a ComparableType
+
+        :param data: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
+        :return: AudioSegment
+        """
+        return data.start_date
 
 
-class PyAudioSourceReaderRaiseOnError(
-    RaiseRuntimeErrorOnStatusFlagMixin, PyAudioSourceReader
+class PyAudioSourceReader(
+    AudioSegmentMixin, FillErrorWithOnesMixin, BasePyAudioSourceReader
 ):
-    """PyAudioSourceReader changed to handle errors by raising RuntimeError"""
-
-
-class PyAudioSourceReaderWithZeroedErrorsAndDictData(
-    DictDataMixin, FillErrorWithZeroesMixin, PyAudioSourceReader
-):
-    """PyAudioSourceReader changed to handle errors and serve data in an easy to read dict."""
-
-
-class PyAudioSourceReaderWithOnedErrorsAndDictData(
-    DictDataMixin, FillErrorWithOnesMixin, PyAudioSourceReader
-):
-    """PyAudioSourceReader changed to handle errors and serve data in an easy to read dict."""
-
-
-def _test_run_PyAudioSourceReader(
-    readerClass=PyAudioSourceReader,
-    timestamp_getter=lambda data: data[0],
-    in_data_getter=lambda data: data[1],
-    status_flags_getter=lambda data: data[4],
-):
-    """Run PyAudioSourceReader and print timestamp, byte length, status code, status flag
-
-    :param readerClass: PyAudioSourceReader class or subclass
-    :param timestamp_getter: get timestamp from data
-    :param in_data_getter: get wf bytes from data
-    :param status_flags_getter: get status_flags from data
-    """
-    from pprint import pprint
-
-    source = readerClass(
-        rate=44100, width=2, channels=1, input_device_index=5, frames_per_buffer=4096,
-    )
-    pprint(source.info)
-    try:
-        source.open()
-        pprint(source.info)
-        i = 0
-        while i < 600:
-            data = source.read()
-            if data:
-                i += 1
-                timestamp = timestamp_getter(data)
-                in_data = in_data_getter(data)
-                status_flags = status_flags_getter(data)
-                print(
-                    timestamp,
-                    len(in_data),
-                    int(status_flags),
-                    PaStatusFlags(status_flags),
-                )
-
-    finally:
-        source.close()
-        pprint(source.info)
-
-
-if __name__ == '__main__':
-    # _test_run_PyAudioSourceReader()
-    # _test_run_PyAudioSourceReader(PyAudioSourceReaderRaiseOnError)
-    _test_run_PyAudioSourceReader(
-        PyAudioSourceReaderWithZeroedErrorsAndDictData,
-        timestamp_getter=lambda data: data['bt'],
-        in_data_getter=lambda data: data['wf'],
-        status_flags_getter=lambda data: data['status_flags'],
-    )
+    """PyAudioSourceReader changed to handle errors and serve data in an easy-to-read dataclass."""
