@@ -1,0 +1,4 @@
+audiostream2py.reader
+=====================
+.. automodule:: audiostream2py.reader
+   :members:

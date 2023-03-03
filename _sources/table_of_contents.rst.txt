@@ -4,4 +4,9 @@
 
    module_docs/audiostream2py
    module_docs/audiostream2py/audio
+   module_docs/audiostream2py/data
+   module_docs/audiostream2py/enum
+   module_docs/audiostream2py/reader
+   module_docs/audiostream2py/tests/_test_run
+   module_docs/audiostream2py/tests/audio_data_test
    module_docs/audiostream2py/tests/utils_for_testing

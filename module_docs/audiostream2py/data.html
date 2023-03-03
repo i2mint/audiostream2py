@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>audiostream2py.data &mdash; audiostream2py 0.1.14 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script src="../../_static/toggleprompt.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="audiostream2py.enum" href="enum.html" />
+    <link rel="prev" title="PyAudio Source" href="audio.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            audiostream2py
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../audiostream2py.html">audiostream2py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">PyAudio Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html#pyaudio-mixins">PyAudio Mixins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html#example-pyaudio-mixin-usage">Example PyAudio Mixin Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">audiostream2py.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="enum.html">audiostream2py.enum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reader.html">audiostream2py.reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/_test_run.html">audiostream2py.tests._test_run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/audio_data_test.html">audiostream2py.tests.audio_data_test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests/utils_for_testing.html">audiostream2py.tests.utils_for_testing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">audiostream2py</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">audiostream2py.data</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/audiostream2py/data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-audiostream2py.data">
+<span id="audiostream2py-data"></span><h1>audiostream2py.data<a class="headerlink" href="#module-audiostream2py.data" title="Permalink to this headline">¶</a></h1>
+<p>AudioSegment dataclass for read values from PyAudioSourceReader.  Provides methods to concatenate
+multiple AudioSegment objs and slicing an individual AudioSegment obj while maintaining the correct
+timestamps and frame counts.</p>
+<dl class="py class">
+<dt id="audiostream2py.data.AudioSegment">
+<em class="property">class </em><code class="sig-prename descclassname">audiostream2py.data.</code><code class="sig-name descname">AudioSegment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_date</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">end_date</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">waveform</span><span class="p">:</span> <span class="n">bytes</span></em>, <em class="sig-param"><span class="n">frame_count</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">status_flags</span><span class="p">:</span> <span class="n"><a class="reference internal" href="enum.html#audiostream2py.enum.PaStatusFlags" title="audiostream2py.enum.PaStatusFlags">audiostream2py.enum.PaStatusFlags</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.bt">
+<em class="property">property </em><code class="sig-name descname">bt</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.bt" title="Permalink to this definition">¶</a></dt>
+<dd><p>bottom time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Legacy naming</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.concatenate">
+<em class="property">static </em><code class="sig-name descname">concatenate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">audio_datas</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">AudioSegment</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.concatenate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.concatenate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Join a sequence of AudioSegment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>audio_datas</strong> – list of AudioSegment</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The concatenated AudioSegment.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.frame_size">
+<em class="property">property </em><code class="sig-name descname">frame_size</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.frame_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Byte count per frame</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.get_sample">
+<code class="sig-name descname">get_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timestamp</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">audiostream2py.data.AudioSegment</a><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.get_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.get_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get sample at timestamp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>timestamp</strong> – microseconds</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sliced AudioSegment</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.get_slice">
+<code class="sig-name descname">get_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">slice</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">audiostream2py.data.AudioSegment</a><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.get_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.get_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slice waveform and return AudioSegment with updated timestamps and data.</p>
+<p>Further info on methodology found in timestamping data stream discussion:
+<a class="reference external" href="https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418">https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418</a></p>
+<p>Note: slice ‘step’ is unlikely used in the traditional sense which is how it is implemented.
+A future improvement could use ‘step’ as a channel selector by filtering out bytes of other
+channels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>s</strong> – slice object with start and stop by timestamp</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sliced AudioSegment</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.nearest_sample_index_and_time">
+<code class="sig-name descname">nearest_sample_index_and_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timestamp</span></em>, <em class="sig-param"><span class="n">rounding_type</span><span class="p">:</span> <span class="n">Literal<span class="p">[</span>floor<span class="p">, </span>ceil<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'ceil'</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>int<span class="p">, </span>Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.nearest_sample_index_and_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.nearest_sample_index_and_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate sample location and round up or down to the nearest whole sample.</p>
+<p>‘ceil’ for session start and ‘floor’ for session end</p>
+<p>Further info on methodology found in timestamping data stream discussion:
+<a class="reference external" href="https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418">https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> – time of sample in the same unit as start and end date</p></li>
+<li><p><strong>rounding_type</strong> – ‘ceil’ or ‘floor’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>sample_index, sample_timestamp</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.tt">
+<em class="property">property </em><code class="sig-name descname">tt</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.tt" title="Permalink to this definition">¶</a></dt>
+<dd><p>top time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Legacy naming</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="audio.html" class="btn btn-neutral float-left" title="PyAudio Source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="enum.html" class="btn btn-neutral float-right" title="audiostream2py.enum" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

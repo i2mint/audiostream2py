@@ -1,0 +1,4 @@
+audiostream2py.enum
+===================
+.. automodule:: audiostream2py.enum
+   :members:

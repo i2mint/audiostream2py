@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>audiostream2py.data &mdash; audiostream2py 0.1.14 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script src="../../_static/toggleprompt.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            audiostream2py
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py.html">audiostream2py</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/audio.html">PyAudio Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/audio.html#pyaudio-mixins">PyAudio Mixins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/audio.html#example-pyaudio-mixin-usage">Example PyAudio Mixin Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/data.html">audiostream2py.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/enum.html">audiostream2py.enum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/reader.html">audiostream2py.reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/tests/_test_run.html">audiostream2py.tests._test_run</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/tests/audio_data_test.html">audiostream2py.tests.audio_data_test</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/tests/utils_for_testing.html">audiostream2py.tests.utils_for_testing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">audiostream2py</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">audiostream2py.data</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for audiostream2py.data</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;AudioSegment dataclass for read values from PyAudioSourceReader.  Provides methods to concatenate</span>
+<span class="sd">multiple AudioSegment objs and slicing an individual AudioSegment obj while maintaining the correct</span>
+<span class="sd">timestamps and frame counts.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">cached_property</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Literal</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">from</span> <span class="nn">audiostream2py.enum</span> <span class="kn">import</span> <span class="n">PaStatusFlags</span>
+
+
+<div class="viewcode-block" id="AudioSegment"><a class="viewcode-back" href="../../module_docs/audiostream2py/data.html#audiostream2py.data.AudioSegment">[docs]</a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">AudioSegment</span><span class="p">:</span>
+    <span class="n">start_date</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">end_date</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">waveform</span><span class="p">:</span> <span class="nb">bytes</span>
+    <span class="n">frame_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">status_flags</span><span class="p">:</span> <span class="n">PaStatusFlags</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Legacy naming: bottom time&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Legacy naming: top time&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span>
+
+<div class="viewcode-block" id="AudioSegment.concatenate"><a class="viewcode-back" href="../../module_docs/audiostream2py/data.html#audiostream2py.data.AudioSegment.concatenate">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">concatenate</span><span class="p">(</span><span class="n">audio_datas</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="s1">&#39;AudioSegment&#39;</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Join a sequence of AudioSegment.</span>
+
+<span class="sd">        :param audio_datas: list of AudioSegment</span>
+<span class="sd">        :return: The concatenated AudioSegment.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start_date</span> <span class="o">=</span> <span class="n">audio_datas</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start_date</span>
+        <span class="n">end_date</span> <span class="o">=</span> <span class="n">audio_datas</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">end_date</span>
+        <span class="n">waveform</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">waveform</span> <span class="k">for</span> <span class="n">ad</span> <span class="ow">in</span> <span class="n">audio_datas</span><span class="p">)</span>
+        <span class="n">frame_count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">ad</span> <span class="ow">in</span> <span class="n">audio_datas</span><span class="p">)</span>
+        <span class="n">status_flags</span> <span class="o">=</span> <span class="n">PaStatusFlags</span><span class="o">.</span><span class="n">paNoError</span>
+        <span class="k">for</span> <span class="n">ad</span> <span class="ow">in</span> <span class="n">audio_datas</span><span class="p">:</span>
+            <span class="n">status_flags</span> <span class="o">|=</span> <span class="n">PaStatusFlags</span><span class="p">(</span><span class="n">ad</span><span class="o">.</span><span class="n">status_flags</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">AudioSegment</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">waveform</span><span class="p">,</span> <span class="n">frame_count</span><span class="p">,</span> <span class="n">status_flags</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;AudioSegment&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Less than comparing start_date</span>
+
+<span class="sd">        :param other: AudioSegment | int | float</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">other_val</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">start_date</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AudioSegment</span><span class="p">)</span> <span class="k">else</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">&lt;</span> <span class="n">other_val</span>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="s1">&#39;AudioSegment&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Greater than comparing start_date</span>
+
+<span class="sd">        :param other: AudioSegment | int | float</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">other_val</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">start_date</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">AudioSegment</span><span class="p">)</span> <span class="k">else</span> <span class="n">other</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">&gt;</span> <span class="n">other_val</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">slice</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;AudioSegment&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slice waveform and return AudioSegment with updated timestamps and data.</span>
+
+<span class="sd">        :param index: timestamp or slice</span>
+<span class="sd">        :return: Sliced AudioSegment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sample</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AudioSegment.get_slice"><a class="viewcode-back" href="../../module_docs/audiostream2py/data.html#audiostream2py.data.AudioSegment.get_slice">[docs]</a>    <span class="k">def</span> <span class="nf">get_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;AudioSegment&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slice waveform and return AudioSegment with updated timestamps and data.</span>
+
+<span class="sd">        Further info on methodology found in timestamping data stream discussion:</span>
+<span class="sd">        https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418</span>
+
+<span class="sd">        Note: slice &#39;step&#39; is unlikely used in the traditional sense which is how it is implemented.</span>
+<span class="sd">        A future improvement could use &#39;step&#39; as a channel selector by filtering out bytes of other</span>
+<span class="sd">        channels.</span>
+
+<span class="sd">        :param s: slice object with start and stop by timestamp</span>
+<span class="sd">        :return: Sliced AudioSegment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">start_sample</span><span class="p">,</span> <span class="n">start_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nearest_sample_index_and_time</span><span class="p">(</span>
+                <span class="n">timestamp</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">rounding_type</span><span class="o">=</span><span class="s1">&#39;ceil&#39;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start_sample</span><span class="p">,</span> <span class="n">start_date</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span>
+
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">end_sample</span><span class="p">,</span> <span class="n">end_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nearest_sample_index_and_time</span><span class="p">(</span>
+                <span class="n">timestamp</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">rounding_type</span><span class="o">=</span><span class="s1">&#39;floor&#39;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end_sample</span><span class="p">,</span> <span class="n">end_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">start_sample</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_size</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="n">end_sample</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_size</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">step</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_size</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">waveform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">:</span><span class="n">step</span><span class="p">]</span>
+        <span class="n">frame_count</span> <span class="o">=</span> <span class="n">end_sample</span> <span class="o">-</span> <span class="n">start_sample</span>
+        <span class="k">return</span> <span class="n">AudioSegment</span><span class="p">(</span>
+            <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">waveform</span><span class="p">,</span> <span class="n">frame_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_flags</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="AudioSegment.get_sample"><a class="viewcode-back" href="../../module_docs/audiostream2py/data.html#audiostream2py.data.AudioSegment.get_sample">[docs]</a>    <span class="k">def</span> <span class="nf">get_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s1">&#39;AudioSegment&#39;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get sample at timestamp.</span>
+
+<span class="sd">        :param timestamp: microseconds</span>
+<span class="sd">        :return: Sliced AudioSegment</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sample_idx</span><span class="p">,</span> <span class="n">start_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nearest_sample_index_and_time</span><span class="p">(</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">rounding_type</span><span class="o">=</span><span class="s1">&#39;floor&#39;</span>
+        <span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">end_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nearest_sample_index_and_time</span><span class="p">(</span>
+            <span class="n">timestamp</span><span class="o">=</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">rounding_type</span><span class="o">=</span><span class="s1">&#39;ceil&#39;</span>
+        <span class="p">)</span>
+        <span class="n">waveform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">waveform</span><span class="p">[</span><span class="n">sample_idx</span> <span class="p">:</span> <span class="n">sample_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_size</span><span class="p">]</span>
+        <span class="n">frame_count</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">AudioSegment</span><span class="p">(</span>
+            <span class="n">start_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">waveform</span><span class="p">,</span> <span class="n">frame_count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">status_flags</span>
+        <span class="p">)</span></div>
+
+    <span class="nd">@cached_property</span>
+    <span class="k">def</span> <span class="nf">frame_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Byte count per frame&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">waveform</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AudioSegment.nearest_sample_index_and_time"><a class="viewcode-back" href="../../module_docs/audiostream2py/data.html#audiostream2py.data.AudioSegment.nearest_sample_index_and_time">[docs]</a>    <span class="k">def</span> <span class="nf">nearest_sample_index_and_time</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">rounding_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;floor&#39;</span><span class="p">,</span> <span class="s1">&#39;ceil&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;ceil&#39;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate sample location and round up or down to the nearest whole sample.</span>
+
+<span class="sd">        &#39;ceil&#39; for session start and &#39;floor&#39; for session end</span>
+
+<span class="sd">        Further info on methodology found in timestamping data stream discussion:</span>
+<span class="sd">        https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418</span>
+
+<span class="sd">        :param timestamp: time of sample in the same unit as start and end date</span>
+<span class="sd">        :param rounding_type: &#39;ceil&#39; or &#39;floor&#39;</span>
+<span class="sd">        :return: sample_index, sample_timestamp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">rounding_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;floor&#39;</span><span class="p">,</span> <span class="s1">&#39;ceil&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">.nearest_sample_index_and_time: rounding_type must be &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;literal &quot;floor&quot; or &quot;ceil&quot; but got &quot;</span><span class="si">{</span><span class="n">rounding_type</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+            <span class="p">)</span>
+        <span class="n">rounder</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">math</span><span class="p">,</span> <span class="n">rounding_type</span><span class="p">)</span>
+        <span class="n">sample_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+            <span class="n">rounder</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">timestamp</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">)</span>
+                <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="p">)</span>
+                <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span>
+            <span class="p">)</span>
+        <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">rounding_type</span> <span class="o">==</span> <span class="s1">&#39;ceil&#39;</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">sample_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">+</span> <span class="n">sample_idx</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">sample_idx</span><span class="p">,</span> <span class="n">sample_time</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">start_date</span><span class="si">}</span><span class="s1">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">end_date</span><span class="si">}</span><span class="s1">)&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s1">&#39;AudioSegment&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">start_date</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_date</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">end_date</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

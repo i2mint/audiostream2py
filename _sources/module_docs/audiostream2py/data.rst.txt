@@ -1,0 +1,4 @@
+audiostream2py.data
+===================
+.. automodule:: audiostream2py.data
+   :members:
