@@ -167,7 +167,10 @@ class AudioSegment:
         return sample_idx, sample_time
 
     def __repr__(self):
-        return f'{type(self).__name__}({self.start_date}, {self.end_date})'
+        return (
+            f'{type(self).__name__}'
+            f'({self.start_date}, {self.end_date}, status_flags={self.status_flags})'
+        )
 
     def __eq__(self, other: 'AudioSegment'):
         return self.start_date == other.start_date and self.end_date == other.end_date

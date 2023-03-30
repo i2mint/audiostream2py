@@ -496,6 +496,8 @@ class FillErrorWithOnesMixin:
             if self._first_error_timestamp is None:
                 # track when errors started
                 self._first_error_timestamp = self.buffer_end
+                # recalculate next timestamps in _set_buffer_start_end
+                self.buffer_end = None
                 # track what errors occurred
                 self._error_status_flag = PaStatusFlags(status_flags)
             else:
