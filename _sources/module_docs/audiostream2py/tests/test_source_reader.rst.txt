@@ -1,0 +1,4 @@
+audiostream2py.tests.test_source_reader
+=======================================
+.. automodule:: audiostream2py.tests.test_source_reader
+   :members:
