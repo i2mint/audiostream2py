@@ -1,7 +1,4 @@
-"""WavFileSourceReader to read a wav file and produce read output similar to PyAudioSourceReader.
-
-ValueError is raised when reaching the end of file.
-"""
+"""WavFileSourceReader to read a wav file and produce read output similar to PyAudioSourceReader."""
 
 import wave
 from functools import cached_property
@@ -12,9 +9,12 @@ from stream2py import SourceReader
 from stream2py.utility.typing_hints import ComparableType
 
 from audiostream2py import AudioSegment, PaStatusFlags
+from audiostream2py.reader import AudioBufferReader
 
 
 class WavFileSourceReader(SourceReader):
+    buffer_reader_class = AudioBufferReader  # BufferReader specific to AudioSegment
+
     def __init__(
         self, file: Union[str, bytes, Path], *, frames_per_buffer=1024, start_date=0
     ):
@@ -26,6 +26,17 @@ class WavFileSourceReader(SourceReader):
 
         self._index = 0
         self._next_bt = self.start_date
+
+    @property
+    def info(self) -> dict:
+        return {
+            'channels': self._fp.getnchannels(),
+            'width': self._fp.getsampwidth(),
+            'rate': self._fp.getframerate(),
+            'n_frames': self._fp.getnframes(),
+            'frames_per_buffer': self.frames_per_buffer,
+            'bt': self.start_date,
+        }
 
     def open(self) -> None:
         self._fp.rewind()
@@ -48,7 +59,7 @@ class WavFileSourceReader(SourceReader):
     def read(self) -> AudioSegment:
         data = self._fp.readframes(self.frames_per_buffer)
         if len(data) == 0:
-            raise ValueError(f'{type(self).__name__} reached end of file')
+            return None
 
         n_frames = int(len(data) / self.bytes_per_frame)
         bt = self._next_bt
