@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>audiostream2py.reader &mdash; audiostream2py 0.1.16 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>audiostream2py.reader &mdash; audiostream2py 0.1.17 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/audio.html#example-pyaudio-mixin-usage">Example PyAudio Mixin Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/data.html">audiostream2py.data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/enum.html">audiostream2py.enum</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/file.html">audiostream2py.file</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/reader.html">audiostream2py.reader</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/tests/_test_run.html">audiostream2py.tests._test_run</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/audiostream2py/tests/audio_data_test.html">audiostream2py.tests.audio_data_test</a></li>
@@ -91,22 +92,22 @@
 <span class="kn">from</span> <span class="nn">audiostream2py.data</span> <span class="kn">import</span> <span class="n">AudioSegment</span>
 
 
-<div class="viewcode-block" id="OverlapsPastError"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.reader.OverlapsPastError">[docs]</a><span class="k">class</span> <span class="nc">OverlapsPastError</span><span class="p">(</span><span class="ne">IndexError</span><span class="p">):</span>
+<div class="viewcode-block" id="OverlapsPastError"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.file.OverlapsPastError">[docs]</a><span class="k">class</span> <span class="nc">OverlapsPastError</span><span class="p">(</span><span class="ne">IndexError</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="OverlapsFutureError"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.reader.OverlapsFutureError">[docs]</a><span class="k">class</span> <span class="nc">OverlapsFutureError</span><span class="p">(</span><span class="ne">IndexError</span><span class="p">):</span>
+<div class="viewcode-block" id="OverlapsFutureError"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.file.OverlapsFutureError">[docs]</a><span class="k">class</span> <span class="nc">OverlapsFutureError</span><span class="p">(</span><span class="ne">IndexError</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="AudioBufferReader"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.reader.AudioBufferReader">[docs]</a><span class="k">class</span> <span class="nc">AudioBufferReader</span><span class="p">(</span><span class="n">BufferReader</span><span class="p">):</span>
+<div class="viewcode-block" id="AudioBufferReader"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.file.AudioBufferReader">[docs]</a><span class="k">class</span> <span class="nc">AudioBufferReader</span><span class="p">(</span><span class="n">BufferReader</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioSegment</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_slice</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">reader_lock</span><span class="p">()</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">reader</span><span class="o">.</span><span class="n">find_le</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
-<div class="viewcode-block" id="AudioBufferReader.get_slice"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.reader.AudioBufferReader.get_slice">[docs]</a>    <span class="k">def</span> <span class="nf">get_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioSegment</span><span class="p">:</span>
+<div class="viewcode-block" id="AudioBufferReader.get_slice"><a class="viewcode-back" href="../../module_docs/audiostream2py/reader.html#audiostream2py.file.AudioBufferReader.get_slice">[docs]</a>    <span class="k">def</span> <span class="nf">get_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioSegment</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Slice starting from start_date and stopping at end_date. Trims first and last</span>
 <span class="sd">        AudioSegment based on timestamps. Then joins all the AudioSegment objects.</span>
 
