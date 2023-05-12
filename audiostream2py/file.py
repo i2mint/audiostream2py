@@ -2,6 +2,7 @@
 
 import wave
 from functools import cached_property
+from io import BytesIO
 from pathlib import Path
 from typing import Union
 
@@ -12,14 +13,56 @@ from audiostream2py import AudioSegment, PaStatusFlags
 from audiostream2py.reader import AudioBufferReader
 
 
+def resolve_file(file: Union[str, bytes, Path, BytesIO]) -> Union[str, BytesIO]:
+    """Resolve file into format excepted by wave.open()
+
+    :param file: file path or bytes
+    :return: str or BytesIO
+    """
+    if isinstance(file, bytes):
+        return BytesIO(file)
+    if isinstance(file, Path):
+        return str(file)
+    return file
+
+
+def file_to_audio_segment(
+    file: Union[str, bytes, Path, BytesIO], start_date=0
+) -> AudioSegment:
+    """Read wav file into an AudioSegment
+
+    :param file: file path or bytes
+    :param start_date: timestamp in microseconds
+    :return:
+    """
+    file = resolve_file(file)
+    with wave.open(file, 'rb') as wave_file:
+        framerate = wave_file.getframerate()
+        nframes = wave_file.getnframes()
+        end_date = start_date + nframes * 1e6 / framerate
+        audio_data = wave_file.readframes(nframes)
+
+        return AudioSegment(
+            start_date=start_date,
+            end_date=end_date,
+            waveform=audio_data,
+            frame_count=nframes,
+            status_flags=PaStatusFlags.paNoError,
+        )
+
+
 class WavFileSourceReader(SourceReader):
     buffer_reader_class = AudioBufferReader  # BufferReader specific to AudioSegment
 
     def __init__(
-        self, file: Union[str, bytes, Path], *, frames_per_buffer=1024, start_date=0
+        self,
+        file: Union[str, bytes, Path, BytesIO],
+        *,
+        frames_per_buffer=1024,
+        start_date=0
     ):
         super().__init__()
-        self.file = file if not isinstance(file, Path) else str(file)
+        self.file = resolve_file(file)
         self.frames_per_buffer = frames_per_buffer
         self.start_date = start_date
         self._fp: wave.Wave_read = wave.open(self.file, 'rb')
