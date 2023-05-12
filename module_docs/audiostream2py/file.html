@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>audiostream2py.file &mdash; audiostream2py 0.1.17 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>audiostream2py.file &mdash; audiostream2py 0.1.18 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -90,7 +90,7 @@
 <p>WavFileSourceReader to read a wav file and produce read output similar to PyAudioSourceReader.</p>
 <dl class="py class">
 <dt id="audiostream2py.file.WavFileSourceReader">
-<em class="property">class </em><code class="sig-prename descclassname">audiostream2py.file.</code><code class="sig-name descname">WavFileSourceReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>bytes<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">frames_per_buffer</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="n">start_date</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/file.html#WavFileSourceReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.file.WavFileSourceReader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">audiostream2py.file.</code><code class="sig-name descname">WavFileSourceReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>bytes<span class="p">, </span>pathlib.Path<span class="p">, </span>_io.BytesIO<span class="p">]</span></span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">frames_per_buffer</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="n">start_date</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/file.html#WavFileSourceReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.file.WavFileSourceReader" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py attribute">
 <dt id="audiostream2py.file.WavFileSourceReader.buffer_reader_class">
 <code class="sig-name descname">buffer_reader_class</code><a class="headerlink" href="#audiostream2py.file.WavFileSourceReader.buffer_reader_class" title="Permalink to this definition">¶</a></dt>
@@ -140,6 +140,37 @@ should be included with read data instead.</p>
 open. Will be called in StreamBuffer immediately before first read.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt id="audiostream2py.file.file_to_audio_segment">
+<code class="sig-prename descclassname">audiostream2py.file.</code><code class="sig-name descname">file_to_audio_segment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>bytes<span class="p">, </span>pathlib.Path<span class="p">, </span>_io.BytesIO<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">start_date</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="data.html#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">audiostream2py.data.AudioSegment</a><a class="reference internal" href="../../_modules/audiostream2py/file.html#file_to_audio_segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.file.file_to_audio_segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read wav file into an AudioSegment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file</strong> – file path or bytes</p></li>
+<li><p><strong>start_date</strong> – timestamp in microseconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="audiostream2py.file.resolve_file">
+<code class="sig-prename descclassname">audiostream2py.file.</code><code class="sig-name descname">resolve_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>bytes<span class="p">, </span>pathlib.Path<span class="p">, </span>_io.BytesIO<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>str<span class="p">, </span>_io.BytesIO<span class="p">]</span><a class="reference internal" href="../../_modules/audiostream2py/file.html#resolve_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.file.resolve_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolve file into format excepted by wave.open()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> – file path or bytes</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str or BytesIO</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
