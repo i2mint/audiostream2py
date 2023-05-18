@@ -174,3 +174,4 @@ class AudioSegment:
 
     def __eq__(self, other: 'AudioSegment'):
         return self.start_date == other.start_date and self.end_date == other.end_date
+# Test new branch
