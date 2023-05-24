@@ -24,14 +24,14 @@ class AudioSegment:
             if self.end_date <= self.start_date:
                 raise ValueError('end_date must be higher than start_date')
             if len(self.waveform) == 0:
-                raise ValueError("waveform can't be empty. "
-                                 "Use AudioSegment.empty() to create empty segment")
+                raise ValueError(
+                    'waveform cannot be empty. Use AudioSegment.empty() to create empty segment'
+                )
             if self.frame_count <= 0:
-                raise ValueError("frame_count must be positive")
+                raise ValueError('frame_count must be positive')
             if len(self.waveform) % self.frame_count != 0:
-                raise ValueError("frame_count must be a divisor of len(waveform)")
-    
-    
+                raise ValueError('frame_count must be a divisor of len(waveform)')
+
     @classmethod
     def empty(cls):
         return cls(None, None, b'', 0, PaStatusFlags.paNoError)
@@ -44,7 +44,7 @@ class AudioSegment:
         if cond1 and cond2 and cond3 and cond4:
             return True
         return False
-    
+
     @property
     def bt(self) -> Optional[Union[int, float]]:
         """Legacy naming: bottom time"""
@@ -64,7 +64,7 @@ class AudioSegment:
 
     @property
     def duration(self) -> Optional[Union[int, float]]:
-        """AudioSegment duration in the same unit as start and end date""" 
+        """AudioSegment duration in the same unit as start and end date"""
         if self.is_empty():
             return None
         return self.end_date - self.start_date
@@ -85,13 +85,12 @@ class AudioSegment:
 
     def __repr__(self) -> str:
         return (
-            f'{type(self).__name__}(\n'
-            f'\tstart_date={self.start_date},\n'
-            f'\tend_date={self.end_date},\n'
-            f'\twaveform=bytes({list(self.waveform)}),\n'
-            f'\tframe_count={self.frame_count},\n'
-            f'\tstatus_flags={self.status_flags}\n'
-            f')'
+            f'{type(self).__name__}('
+            f'start_date={self.start_date}, '
+            f'end_date={self.end_date}, '
+            f'frame_count={self.frame_count}, '
+            f'status_flags={self.status_flags}'
+            ')'
         )
 
     def __lt__(self, other: Union['AudioSegment', int, float]) -> bool:
@@ -137,13 +136,17 @@ class AudioSegment:
         :param audio_datas: list of AudioSegment
         :return: The concatenated AudioSegment.
         """
-        audio_segments = {audioseg for audioseg in audio_segments if not audioseg.is_empty()}
+        audio_segments = {
+            audioseg for audioseg in audio_segments if not audioseg.is_empty()
+        }
         audio_segments = sorted(audio_segments)
         bts, tts = zip(*[(audioseg.bt, audioseg.tt) for audioseg in audio_segments])
-        assert all(tts[i] == bts[i+1] for i in range(len(audio_segments)-1)), \
-            'Audio sequences must be contiguous'
-        assert len({audioseg.frame_size for audioseg in audio_segments}) == 1, \
-            "audio_segments must all have the same frame_size"
+        assert all(
+            tts[i] == bts[i + 1] for i in range(len(audio_segments) - 1)
+        ), 'Audio sequences must be contiguous'
+        assert (
+            len({audioseg.frame_size for audioseg in audio_segments}) == 1
+        ), 'audio_segments must all have the same frame_size'
         start_date, end_date = bts[0], tts[-1]
         waveform = b''.join(audioseg.waveform for audioseg in audio_segments)
         frame_count = sum(audioseg.frame_count for audioseg in audio_segments)
@@ -155,16 +158,18 @@ class AudioSegment:
 
     def get_ts_of_frame_index(self, frame_idx: int) -> Tuple[float, float]:
         """get bt and tt of frame at index frame_idx
-        
+
         :param frame_idx: frame index
         :return: bt, tt
         """
         if not isinstance(frame_idx, int):
             raise TypeError('Index must be an integer')
         if not -self.frame_count <= frame_idx < self.frame_count:
-            raise IndexError('Index out of range. '
-                             f'Must take values in [-{self.frame_count}, {self.frame_count}), '
-                             f'Got {frame_idx}.')
+            raise IndexError(
+                'Index out of range. '
+                f'Must take values in [-{self.frame_count}, {self.frame_count}), '
+                f'Got {frame_idx}.'
+            )
         frame_idx = frame_idx % self.frame_count
         bt = self.start_date + frame_idx * self.frame_period
         tt = bt + self.frame_period
@@ -179,8 +184,8 @@ class AudioSegment:
         Note: slice 'step' is unlikely used in the traditional sense which is how it is implemented.
         A future improvement could use 'step' as a channel selector by filtering out bytes of other
         channels.
-        Charlie's EDIT: changed the function so that slice steps are no longer authorized. The 
-        current class implementation does not support multi-channel audio segments. 
+        Charlie's EDIT: changed the function so that slice steps are no longer authorized. The
+        current class implementation does not support multi-channel audio segments.
 
         :param s: slice object with start and stop by timestamp
         :return: Sliced AudioSegment
@@ -196,8 +201,12 @@ class AudioSegment:
         if s.stop is not None:
             end_frame = self._nearest_frame_index(ts=s.stop, rounding_type='floor')
             if end_frame is not None:
-                if s.stop < self.end_date and (s.stop - self.start_date) % self.frame_period == 0:
-                    end_frame -= 1  # Does not include frame i if s.stop == bt of frame i
+                if (
+                    s.stop < self.end_date
+                    and (s.stop - self.start_date) % self.frame_period == 0
+                ):
+                    # Does not include frame i if s.stop == bt of frame i
+                    end_frame -= 1
         else:
             end_frame = self.frame_count - 1
 
@@ -222,9 +231,11 @@ class AudioSegment:
         :return: Sliced AudioSegment
         """
         if not self.start_date <= ts < self.end_date:
-            raise IndexError('Timestamp out of range'
-                             f'Must take values in [-{self.start_date}, {self.end_date}); '
-                             f'Got {ts}.')
+            raise IndexError(
+                'Timestamp out of range. '
+                f'Must take values in ({self.start_date}, {self.end_date}); '
+                f'Got {ts}.'
+            )
         frame_idx = self._nearest_frame_index(ts=ts, rounding_type='floor')
         start_date, end_date = self.get_ts_of_frame_index(frame_idx)
         start = frame_idx * self.frame_size
@@ -232,9 +243,13 @@ class AudioSegment:
         waveform = self.waveform[start:stop]
         frame_count = 1
 
-        return AudioSegment(start_date, end_date, waveform, frame_count, self.status_flags)
+        return AudioSegment(
+            start_date, end_date, waveform, frame_count, self.status_flags
+        )
 
-    def _nearest_frame_index(self, ts, rounding_type: Literal['floor', 'ceil'] = 'ceil') -> int:
+    def _nearest_frame_index(
+        self, ts, rounding_type: Literal['floor', 'ceil'] = 'ceil'
+    ) -> int:
         """Calculate frame index coming just after ('ceil') or just before ('floor') given timestamp
 
         'ceil' for slice().start, 'floor' for slice().stop
@@ -245,20 +260,20 @@ class AudioSegment:
 
         :param ts: timestamp in the same unit as start and end date
         :param rounding_type: 'ceil' or 'floor'
-        :return: frame_index or None if ts and rounding_method does not lead to an actual frame 
+        :return: frame_index or None if ts and rounding_method does not lead to an actual frame
         """
         if rounding_type not in ('floor', 'ceil'):
             raise ValueError(
                 f'{type(self).__name__}.nearest_frame_index: rounding_type must be '
                 f'literal "floor" or "ceil" but got "{rounding_type}"'
-            )     
+            )
         rounder = getattr(math, rounding_type)
         frame_idx = rounder((ts - self.start_date) / self.frame_period)
         if frame_idx < 0 and rounding_type == 'floor':
             return None
-        if frame_idx > self.frame_count-1 and rounding_type == 'ceil':
+        if frame_idx > self.frame_count - 1 and rounding_type == 'ceil':
             return None
-        return min(max(frame_idx, 0), self.frame_count-1)
+        return min(max(frame_idx, 0), self.frame_count - 1)
 
     def _test_if_not_empty_for_comparison(self, other) -> None:
         if self.is_empty():
