@@ -143,10 +143,9 @@ class AudioSegment:
         bts, tts = zip(*[(audioseg.bt, audioseg.tt) for audioseg in audio_segments])
         assert all(
             tts[i] == bts[i + 1] for i in range(len(audio_segments) - 1)
-        ), 'Audio sequences must be contiguous'
-        assert (
-            len({audioseg.frame_size for audioseg in audio_segments}) == 1
-        ), 'audio_segments must all have the same frame_size'
+        ), 'Audio segments must be contiguous'
+        assert len({audioseg.frame_size for audioseg in audio_segments}) == 1, \
+            'Audio segments must all have the same frame_size'
         start_date, end_date = bts[0], tts[-1]
         waveform = b''.join(audioseg.waveform for audioseg in audio_segments)
         frame_count = sum(audioseg.frame_count for audioseg in audio_segments)
