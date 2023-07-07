@@ -130,7 +130,7 @@ class AudioSegment:
         return self._get_frame(ts)
 
     def __add__(self, other: 'AudioSegment') -> 'AudioSegment':
-        if other == 0:
+        if isinstance(other, int) and other == 0:
             other = AudioSegment.empty()
         return AudioSegment.concatenate([self, other])
 
@@ -147,6 +147,8 @@ class AudioSegment:
         audio_segments = {
             audioseg for audioseg in audio_segments if not audioseg.is_empty()
         }
+        if not audio_segments:
+            return AudioSegment.empty()
         audio_segments = sorted(audio_segments)
         bts, tts = zip(*[(audioseg.bt, audioseg.tt) for audioseg in audio_segments])
         assert all(
