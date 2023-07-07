@@ -166,6 +166,7 @@ class BasePyAudioSourceReader(SourceReader):
         input_device=None,
         verbose=True,
         ts_refresh_period=1000,
+        frame_rate_inaccuracy = 50e-6
     ):
         """
 
@@ -181,14 +182,8 @@ class BasePyAudioSourceReader(SourceReader):
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
         :param verbose: Permission to print stuff when we feel like it?
-        :param ts_refresh_period: in seconds. Period with which a buffer will be timestamped with
-            host-system time - using SourceReader.get_timestamp - instead of using frame rate 
-            and frame counts. Avoids drift between buffer timestamps and host-system time due to 
-            frame rate innaccuracies. Crucial if we need to synchronize data from different sources.
-            Default value is 1,000 seconds.
-            Buffers used to be timestamped exclusively with host-system time, without taking the 
-            frame rate into account at any time, but this can lead to short-term imprecisions.  
-
+        :param frame_rate_inaccuracy: unitless. Expresses a drift of X sec/sec for instance.
+            Default value set at 50 ppm (number from WebDAQ datasheet) 
         """
         super().__init__()
         self._init_kwargs = {
@@ -233,8 +228,24 @@ class BasePyAudioSourceReader(SourceReader):
         self.buffer_end = None
         self.last_ts_refresh = None
 
-        # conversion to micro-seconds
-        self.ts_refresh_period = ts_refresh_period * self.timestamp_seconds_to_unit_conversion  
+        '''
+        Calculating ts_refresh_period, which will be the period with which a buffer will be 
+        timestamped with the host-system time - using SourceReader.get_timestamp - instead of using 
+        the frame rate and frame count values. This limits the drift between buffer timestamps and 
+        host-system time due to frame rate innaccuracies. Crucial if we need to synchronize data 
+        from different sources.
+        Calculated so that the expected drift does not exceed the minimum of 50 ms and 1/10 of the 
+        buffer duration.
+        Buffers used to be timestamped exclusively with host-system time, without taking the 
+        frame rate into account at any time, but this can lead to significant short-term 
+        imprecisions. Hence this correction to take the frame rate back into account and find a 
+        balance between timestamp precision and stability.
+        '''
+        tenth_buffer_dur = frames_per_buffer / rate / 10
+        ts_refresh_period_1 = tenth_buffer_dur / frame_rate_inaccuracy
+        ts_refresh_period_2 = 50e-3 / frame_rate_inaccuracy
+        self.ts_refresh_period = min(ts_refresh_period_1, ts_refresh_period_2)
+        self.ts_refresh_period *= self.timestamp_seconds_to_unit_conversion
 
     def _init_vars(self):
         if self._fp:
@@ -245,7 +256,7 @@ class BasePyAudioSourceReader(SourceReader):
 
         self.buffer_start = None
         self.buffer_end = None
-        self.time_since_last_ts_refresh = 0
+        self.last_ts_refresh = None
 
     def __repr__(self):
         def quote_strings(x):
@@ -403,7 +414,7 @@ class BasePyAudioSourceReader(SourceReader):
 
         t_len = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
         ts = self.get_timestamp()
-        
+
         if self.last_ts_refresh is not None and ts - self.last_ts_refresh < self.ts_refresh_period:
             buffer_end_timestamp = self.buffer_end + t_len
         else:
