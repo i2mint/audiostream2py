@@ -166,7 +166,8 @@ class BasePyAudioSourceReader(SourceReader):
         input_device=None,
         verbose=True,
         ts_refresh_period=1000,
-        frame_rate_inaccuracy = 50e-6
+        frame_rate_inaccuracy=50e-6,
+        max_drift_accepted=50e-3
     ):
         """
 
@@ -184,6 +185,10 @@ class BasePyAudioSourceReader(SourceReader):
         :param verbose: Permission to print stuff when we feel like it?
         :param frame_rate_inaccuracy: unitless. Expresses a drift of X sec/sec for instance.
             Default value set at 50 ppm (number from WebDAQ datasheet) 
+        :param max_drift_accepted: in seconds. Max drift accepted between buffer timestamps and 
+            host-system time. Lowering this value will cause buffers to be timestamped on shorter 
+            intervals, which may increase short-term imprecisions.
+            Default value set at 50 ms. 
         """
         super().__init__()
         self._init_kwargs = {
@@ -234,17 +239,12 @@ class BasePyAudioSourceReader(SourceReader):
         the frame rate and frame count values. This limits the drift between buffer timestamps and 
         host-system time due to frame rate innaccuracies. Crucial if we need to synchronize data 
         from different sources.
-        Calculated so that the expected drift does not exceed the minimum of 50 ms and 1/10 of the 
-        buffer duration.
         Buffers used to be timestamped exclusively with host-system time, without taking the 
         frame rate into account at any time, but this can lead to significant short-term 
         imprecisions. Hence this correction to take the frame rate back into account and find a 
         balance between timestamp precision and stability.
         '''
-        tenth_buffer_dur = frames_per_buffer / rate / 10
-        ts_refresh_period_1 = tenth_buffer_dur / frame_rate_inaccuracy
-        ts_refresh_period_2 = 50e-3 / frame_rate_inaccuracy
-        self.ts_refresh_period = min(ts_refresh_period_1, ts_refresh_period_2)
+        self.ts_refresh_period = max_drift_accepted / frame_rate_inaccuracy
         self.ts_refresh_period *= self.timestamp_seconds_to_unit_conversion
 
     def _init_vars(self):
