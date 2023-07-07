@@ -165,9 +165,9 @@ class BasePyAudioSourceReader(SourceReader):
         frames_per_buffer=1024,
         input_device=None,
         verbose=True,
-        ts_refresh_period=1000,
-        frame_rate_inaccuracy=50e-6,
-        max_drift_accepted=50e-3
+        ts_refresh_period=10
+        # frame_rate_inaccuracy=50e-6,
+        # max_drift_accepted=50e-3
     ):
         """
 
@@ -233,18 +233,19 @@ class BasePyAudioSourceReader(SourceReader):
         self.buffer_end = None
         self.last_ts_refresh = None
 
-        '''
-        Calculating ts_refresh_period, which will be the period with which a buffer will be 
-        timestamped with the host-system time - using SourceReader.get_timestamp - instead of using 
-        the frame rate and frame count values. This limits the drift between buffer timestamps and 
-        host-system time due to frame rate innaccuracies. Crucial if we need to synchronize data 
-        from different sources.
-        Buffers used to be timestamped exclusively with host-system time, without taking the 
-        frame rate into account at any time, but this can lead to significant short-term 
-        imprecisions. Hence this correction to take the frame rate back into account and find a 
-        balance between timestamp precision and stability.
-        '''
-        self.ts_refresh_period = max_drift_accepted / frame_rate_inaccuracy
+        # '''
+        # Calculating ts_refresh_period, which will be the period with which a buffer will be 
+        # timestamped with the host-system time - using SourceReader.get_timestamp - instead of using 
+        # the frame rate and frame count values. This limits the drift between buffer timestamps and 
+        # host-system time due to frame rate innaccuracies. Crucial if we need to synchronize data 
+        # from different sources.
+        # Buffers used to be timestamped exclusively with host-system time, without taking the 
+        # frame rate into account at any time, but this can lead to significant short-term 
+        # imprecisions. Hence this correction to take the frame rate back into account and find a 
+        # balance between timestamp precision and stability.
+        # '''
+        # self.ts_refresh_period = max_drift_accepted / frame_rate_inaccuracy
+        self.ts_refresh_period = ts_refresh_period
         self.ts_refresh_period *= self.timestamp_seconds_to_unit_conversion
 
     def _init_vars(self):
