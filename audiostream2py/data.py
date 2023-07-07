@@ -131,10 +131,10 @@ class AudioSegment:
 
     def __add__(self, other: 'AudioSegment') -> 'AudioSegment':
         return AudioSegment.concatenate([self, other])
-    
-    def __iadd_(self, other: 'AudioSegment') -> 'AudioSegment':
+
+    def __iadd__(self, other: 'AudioSegment') -> 'AudioSegment':
         return self + other
-    
+
     @staticmethod
     def concatenate(audio_segments: Sequence['AudioSegment']):
         """Join a sequence of AudioSegment.
