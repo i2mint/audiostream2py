@@ -165,6 +165,7 @@ class BasePyAudioSourceReader(SourceReader):
         frames_per_buffer=1024,
         input_device=None,
         verbose=True,
+        ts_refresh_period=1000,
     ):
         """
 
@@ -180,6 +181,13 @@ class BasePyAudioSourceReader(SourceReader):
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
         :param verbose: Permission to print stuff when we feel like it?
+        :param ts_refresh_period: in seconds. Period with which a buffer will be timestamped with
+            host-system time - using SourceReader.get_timestamp - instead of using frame rate 
+            and frame counts. Avoids drift between buffer timestamps and host-system time due to 
+            frame rate innaccuracies. Crucial if we need to synchronize data from different sources.
+            Default value is 1,000 seconds.
+            Buffers used to be timestamped exclusively with host-system time, without taking the 
+            frame rate into account at any time, but this can lead to short-term imprecisions.  
 
         """
         super().__init__()
@@ -223,7 +231,10 @@ class BasePyAudioSourceReader(SourceReader):
         self.data = deque()
         self.buffer_start = None
         self.buffer_end = None
-        self._init_vars()
+        self.last_ts_refresh = None
+
+        # conversion to micro-seconds
+        self.ts_refresh_period = ts_refresh_period * self.timestamp_seconds_to_unit_conversion  
 
     def _init_vars(self):
         if self._fp:
@@ -234,6 +245,7 @@ class BasePyAudioSourceReader(SourceReader):
 
         self.buffer_start = None
         self.buffer_end = None
+        self.time_since_last_ts_refresh = 0
 
     def __repr__(self):
         def quote_strings(x):
@@ -388,10 +400,17 @@ class BasePyAudioSourceReader(SourceReader):
         :return: status flag
         """
         status_flag = PaStatusFlags.paNoError
-        buffer_end_timestamp = self.get_timestamp()
+
+        t_len = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
+        ts = self.get_timestamp()
+        
+        if self.last_ts_refresh is not None and ts - self.last_ts_refresh < self.ts_refresh_period:
+            buffer_end_timestamp = self.buffer_end + t_len
+        else:
+            buffer_end_timestamp = ts
+            self.last_ts_refresh = ts
 
         if self.buffer_end is None:
-            t_len = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
             self.buffer_start = buffer_end_timestamp - t_len
         else:
             if buffer_end_timestamp < (
