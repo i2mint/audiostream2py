@@ -130,6 +130,8 @@ class AudioSegment:
         return self._get_frame(ts)
 
     def __add__(self, other: 'AudioSegment') -> 'AudioSegment':
+        if other == 0:
+            other = AudioSegment.empty()
         return AudioSegment.concatenate([self, other])
 
     def __iadd__(self, other: 'AudioSegment') -> 'AudioSegment':
