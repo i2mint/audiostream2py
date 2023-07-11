@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>audiostream2py.data &mdash; audiostream2py 0.1.18 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>audiostream2py.data &mdash; audiostream2py 0.1.19 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/copybutton.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -106,8 +106,9 @@ timestamps and frame counts.</p>
 
 <dl class="py method">
 <dt id="audiostream2py.data.AudioSegment.concatenate">
-<em class="property">static </em><code class="sig-name descname">concatenate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">audio_datas</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">AudioSegment</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.concatenate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.concatenate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Join a sequence of AudioSegment.</p>
+<em class="property">static </em><code class="sig-name descname">concatenate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">audio_segments</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">AudioSegment</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.concatenate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.concatenate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Join a sequence of AudioSegment. AudioSegments must be contiguous.
+If all are empty, returns an empty AudioSegment.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>audio_datas</strong> – list of AudioSegment</p>
@@ -119,62 +120,53 @@ timestamps and frame counts.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.duration">
+<em class="property">property </em><code class="sig-name descname">duration</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>AudioSegment duration, in the same unit as start and end date</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.empty">
+<em class="property">classmethod </em><code class="sig-name descname">empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean way of creating empty segments</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.frame_period">
+<em class="property">property </em><code class="sig-name descname">frame_period</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.frame_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>frame period, in the same unit as start and end date</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="audiostream2py.data.AudioSegment.frame_rate">
+<em class="property">property </em><code class="sig-name descname">frame_rate</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.frame_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>frame rate, in the same unit as start and end date, inversed</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="audiostream2py.data.AudioSegment.frame_size">
 <em class="property">property </em><code class="sig-name descname">frame_size</code><a class="headerlink" href="#audiostream2py.data.AudioSegment.frame_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Byte count per frame</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="audiostream2py.data.AudioSegment.get_sample">
-<code class="sig-name descname">get_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timestamp</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">audiostream2py.data.AudioSegment</a><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.get_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.get_sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get sample at timestamp.</p>
+<dt id="audiostream2py.data.AudioSegment.get_ts_of_frame_index">
+<code class="sig-name descname">get_ts_of_frame_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">frame_idx</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.get_ts_of_frame_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.get_ts_of_frame_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>get bt and tt of frame at index frame_idx</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>timestamp</strong> – microseconds</p>
+<dd class="field-odd"><p><strong>frame_idx</strong> – frame index</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Sliced AudioSegment</p>
+<dd class="field-even"><p>bt, tt</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="audiostream2py.data.AudioSegment.get_slice">
-<code class="sig-name descname">get_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n">slice</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#audiostream2py.data.AudioSegment" title="audiostream2py.data.AudioSegment">audiostream2py.data.AudioSegment</a><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.get_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.get_slice" title="Permalink to this definition">¶</a></dt>
-<dd><p>Slice waveform and return AudioSegment with updated timestamps and data.</p>
-<p>Further info on methodology found in timestamping data stream discussion:
-<a class="reference external" href="https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418">https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418</a></p>
-<p>Note: slice ‘step’ is unlikely used in the traditional sense which is how it is implemented.
-A future improvement could use ‘step’ as a channel selector by filtering out bytes of other
-channels.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>s</strong> – slice object with start and stop by timestamp</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Sliced AudioSegment</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="audiostream2py.data.AudioSegment.nearest_sample_index_and_time">
-<code class="sig-name descname">nearest_sample_index_and_time</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timestamp</span></em>, <em class="sig-param"><span class="n">rounding_type</span><span class="p">:</span> <span class="n">Literal<span class="p">[</span>floor<span class="p">, </span>ceil<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">'ceil'</span></em><span class="sig-paren">)</span> &#x2192; Tuple<span class="p">[</span>int<span class="p">, </span>Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.nearest_sample_index_and_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.nearest_sample_index_and_time" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate sample location and round up or down to the nearest whole sample.</p>
-<p>‘ceil’ for session start and ‘floor’ for session end</p>
-<p>Further info on methodology found in timestamping data stream discussion:
-<a class="reference external" href="https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418">https://miro.com/app/board/uXjVPsuJtdM=/?share_link_id=872583858418</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>timestamp</strong> – time of sample in the same unit as start and end date</p></li>
-<li><p><strong>rounding_type</strong> – ‘ceil’ or ‘floor’</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>sample_index, sample_timestamp</p>
-</dd>
-</dl>
+<dt id="audiostream2py.data.AudioSegment.is_empty">
+<code class="sig-name descname">is_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../../_modules/audiostream2py/data.html#AudioSegment.is_empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#audiostream2py.data.AudioSegment.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean way of testing if a segment is empty</p>
 </dd></dl>
 
 <dl class="py method">
