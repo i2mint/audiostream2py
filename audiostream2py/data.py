@@ -34,9 +34,11 @@ class AudioSegment:
 
     @classmethod
     def empty(cls):
+        '''Clean way of creating empty segments'''
         return cls(None, None, b'', 0, PaStatusFlags.paNoError)
 
     def is_empty(self) -> bool:
+        '''Clean way of testing if a segment is empty'''
         cond1 = self.start_date is None
         cond2 = self.end_date is None
         cond3 = len(self.waveform) == 0
@@ -64,21 +66,21 @@ class AudioSegment:
 
     @property
     def duration(self) -> Optional[Union[int, float]]:
-        """AudioSegment duration in the same unit as start and end date"""
+        """AudioSegment duration, in the same unit as start and end date"""
         if self.is_empty():
             return None
         return self.end_date - self.start_date
 
     @property
     def frame_period(self) -> Optional[float]:
-        """frame period in the same unit as start and end date"""
+        """frame period, in the same unit as start and end date"""
         if self.is_empty():
             return None
         return self.duration / self.frame_count
 
     @property
     def frame_rate(self) -> Optional[float]:
-        """frame rate in the same unit as start and end date, inversed"""
+        """frame rate, in the same unit as start and end date, inversed"""
         if self.is_empty():
             return None
         return 1 / self.frame_period
@@ -94,7 +96,7 @@ class AudioSegment:
         )
 
     def __lt__(self, other: Union['AudioSegment', int, float]) -> bool:
-        """Less than comparing start_date
+        """Less than, comparing start_date
 
         :param other: AudioSegment | int | float
         :return: bool
@@ -104,7 +106,7 @@ class AudioSegment:
         return self.start_date < other_val
 
     def __gt__(self, other: Union['AudioSegment', int, float]) -> bool:
-        """Greater than comparing start_date
+        """Greater than, comparing start_date
 
         :param other: AudioSegment | int | float
         :return: bool
@@ -114,6 +116,11 @@ class AudioSegment:
         return self.start_date > other_val
 
     def __eq__(self, other: 'AudioSegment'):
+        """Equal to, comparing start_date and end_date
+
+        :param other: AudioSegment | int | float
+        :return: bool
+        """
         self._test_if_not_empty_for_comparison(other)
         return self.start_date == other.start_date and self.end_date == other.end_date
 
@@ -130,6 +137,7 @@ class AudioSegment:
         return self._get_frame(ts)
 
     def __add__(self, other: 'AudioSegment') -> 'AudioSegment':
+        '''Concatenates two AudioSegments. They must be contiguous.'''
         return AudioSegment.concatenate([self, other])
 
     def __iadd__(self, other: 'AudioSegment') -> 'AudioSegment':
@@ -137,7 +145,8 @@ class AudioSegment:
 
     @staticmethod
     def concatenate(audio_segments: Sequence['AudioSegment']):
-        """Join a sequence of AudioSegment.
+        """Join a sequence of AudioSegment. AudioSegments must be contiguous. 
+        If all are empty, returns an empty AudioSegment.
 
         :param audio_datas: list of AudioSegment
         :return: The concatenated AudioSegment.
@@ -194,6 +203,22 @@ class AudioSegment:
         Charlie's EDIT: changed the function so that slice steps are no longer authorized. The
         current class implementation does not support multi-channel audio segments.
 
+        Implemented so that a series of contiguous slices, whatever their ranges and values, will 
+        generate a series of AudioSegments that can be concatenated using the concatenate method, 
+        i.e. a series of AudioSegments that are either contiguous with no duplicates, or empty.
+
+        If audioseg is an AudioSegment object, then, for any increasing values of t0, t1, ..., tn:
+        audioseg[t0:t1] + audioseg[t1:t2] + ... + audioseg[tn_2:tn_1] + audioseg[tn_1:tn] is equal 
+        to audioseg[t0:tn]
+
+        More details on the behavior of this method in its corresponding test function in 
+        audiostream2py.test.audio_data_test
+
+        NB: If the slice is smaller than a frame period, it is possible this method returns an empty
+        AudioSegment, even if the slice is within the AudioSegment time range. This will happen if 
+        the slice is located on a single and same frame. This choice has been made to meet the 
+        non-duplication and reconcatenation requirements mentionned above.        
+        
         :param s: slice object with start and stop by timestamp
         :return: Sliced AudioSegment
         """
@@ -218,6 +243,7 @@ class AudioSegment:
             end_frame = self.frame_count - 1
 
         if None in (start_frame, end_frame) or start_frame > end_frame:
+            # Happens in invalid slices (descending or out of time range)
             return self.empty()
 
         start_date, _ = self.get_ts_of_frame_index(start_frame)
