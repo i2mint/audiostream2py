@@ -188,7 +188,7 @@ class AudioSegment:
             )
         frame_idx = frame_idx % self.frame_count
         bt = self.start_date + frame_idx * self.frame_period
-        tt = bt + self.frame_period
+        tt = self.start_date + (frame_idx + 1) * self.frame_period
         return bt, tt
 
     def _get_slice(self, s: slice) -> 'AudioSegment':
