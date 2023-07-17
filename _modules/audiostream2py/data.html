@@ -273,7 +273,7 @@
             <span class="p">)</span>
         <span class="n">frame_idx</span> <span class="o">=</span> <span class="n">frame_idx</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_count</span>
         <span class="n">bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">+</span> <span class="n">frame_idx</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_period</span>
-        <span class="n">tt</span> <span class="o">=</span> <span class="n">bt</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_period</span>
+        <span class="n">tt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_date</span> <span class="o">+</span> <span class="p">(</span><span class="n">frame_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_period</span>
         <span class="k">return</span> <span class="n">bt</span><span class="p">,</span> <span class="n">tt</span></div>
 
     <span class="k">def</span> <span class="nf">_get_slice</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">slice</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;AudioSegment&#39;</span><span class="p">:</span>
