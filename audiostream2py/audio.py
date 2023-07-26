@@ -166,8 +166,6 @@ class BasePyAudioSourceReader(SourceReader):
         input_device=None,
         verbose=True,
         ts_refresh_period=1000
-        # frame_rate_inaccuracy=50e-6,
-        # max_drift_accepted=50e-3
     ):
         """
 
