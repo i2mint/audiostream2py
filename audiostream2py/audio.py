@@ -395,18 +395,21 @@ class BasePyAudioSourceReader(SourceReader):
         ts = self.get_timestamp()
 
         # Timestamping buffer end...
-        if self.last_ts_refresh is not None and ts - self.last_ts_refresh < self.ts_refresh_period:
-            # based on timestamp of previous buffer...
-            buffer_end_timestamp = self.buffer_end + buffer_dur
-        else:
-            # or based on host-system time, because either this is the very first buffer, or a 
-            # timestamp refresh is needed
+        if (self.buffer_end is None or
+            self.last_ts_refresh is None or
+            ts - self.last_ts_refresh > self.ts_refresh_period
+        ):
+            # with host-system time, because a refresh is needed or there is no info about a 
+            # previous buffer
             buffer_end_timestamp = ts
             self.last_ts_refresh = ts
+        else:
+            # based on timestamp of previous buffer otherwise
+            buffer_end_timestamp = self.buffer_end + buffer_dur
 
         # Timestamping buffer start...
         if self.buffer_end is None:
-            # by inference if this is the very first buffer
+            # by inference if there is no info about a previous buffer
             self.buffer_start = buffer_end_timestamp - buffer_dur
         else:
             # based on timestamp of previous buffer otherwise.
@@ -513,7 +516,7 @@ class FillErrorWithOnesMixin:
         :return: None, PaCallbackReturnCodes.paContinue
         """
 
-        if PaStatusFlags(status_flags) == PaStatusFlags.paInputOverflow:
+        if PaStatusFlags.paInputOverflow in PaStatusFlags(status_flags):
             self.buffer_start = None
             if self._first_error_timestamp is None:
                 # track when errors started
@@ -541,7 +544,7 @@ class FillErrorWithOnesMixin:
                         fill_data,
                         fill_count,
                         {},
-                        self._error_status_flag | status_flags,
+                        self._error_status_flag,
                     )
                 )
                 self._first_error_timestamp = None
