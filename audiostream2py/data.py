@@ -34,11 +34,11 @@ class AudioSegment:
 
     @classmethod
     def empty(cls):
-        '''Clean way of creating empty segments'''
+        """Clean way of creating empty segments"""
         return cls(None, None, b'', 0, PaStatusFlags.paNoError)
 
     def is_empty(self) -> bool:
-        '''Clean way of testing if a segment is empty'''
+        """Clean way of testing if a segment is empty"""
         cond1 = self.start_date is None
         cond2 = self.end_date is None
         cond3 = len(self.waveform) == 0
@@ -137,7 +137,7 @@ class AudioSegment:
         return self._get_frame(ts)
 
     def __add__(self, other: 'AudioSegment') -> 'AudioSegment':
-        '''Concatenates two AudioSegments. They must be contiguous.'''
+        """Concatenates two AudioSegments. They must be contiguous."""
         return AudioSegment.concatenate([self, other])
 
     def __iadd__(self, other: 'AudioSegment') -> 'AudioSegment':
@@ -161,8 +161,9 @@ class AudioSegment:
         assert all(
             tts[i] == bts[i + 1] for i in range(len(audio_segments) - 1)
         ), 'Audio segments must be contiguous'
-        assert len({audioseg.frame_size for audioseg in audio_segments}) == 1, \
-            'Audio segments must all have the same frame_size'
+        assert (
+            len({audioseg.frame_size for audioseg in audio_segments}) == 1
+        ), 'Audio segments must all have the same frame_size'
         start_date, end_date = bts[0], tts[-1]
         waveform = b''.join(audioseg.waveform for audioseg in audio_segments)
         frame_count = sum(audioseg.frame_count for audioseg in audio_segments)
