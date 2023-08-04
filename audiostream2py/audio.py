@@ -165,7 +165,7 @@ class BasePyAudioSourceReader(SourceReader):
         frames_per_buffer=1024,
         input_device=None,
         verbose=True,
-        ts_refresh_period=1000
+        ts_refresh_period=1000,
     ):
         """
 
@@ -228,7 +228,9 @@ class BasePyAudioSourceReader(SourceReader):
         self.buffer_start = None
         self.buffer_end = None
         self.last_ts_refresh = None
-        self.ts_refresh_period = ts_refresh_period * self.timestamp_seconds_to_unit_conversion
+        self.ts_refresh_period = (
+            ts_refresh_period * self.timestamp_seconds_to_unit_conversion
+        )
 
     def _init_vars(self):
         if self._fp:
@@ -395,11 +397,12 @@ class BasePyAudioSourceReader(SourceReader):
         ts = self.get_timestamp()
 
         # Timestamping buffer end...
-        if (self.buffer_end is None or
-            self.last_ts_refresh is None or
-            ts - self.last_ts_refresh > self.ts_refresh_period
+        if (
+            self.buffer_end is None
+            or self.last_ts_refresh is None
+            or ts - self.last_ts_refresh > self.ts_refresh_period
         ):
-            # with host-system time, because a refresh is needed or there is no info about a 
+            # with host-system time, because a refresh is needed or there is no info about a
             # previous buffer
             buffer_end_timestamp = ts
             self.last_ts_refresh = ts
@@ -413,10 +416,13 @@ class BasePyAudioSourceReader(SourceReader):
             self.buffer_start = buffer_end_timestamp - buffer_dur
         else:
             # based on timestamp of previous buffer otherwise.
-            # But first, checking if new buffer timestamp is posterior enough to previous buffer 
-            # timestamp. If not, we readjust and set last_ts_refresh to None to force timestamp 
+            # But first, checking if new buffer timestamp is posterior enough to previous buffer
+            # timestamp. If not, we readjust and set last_ts_refresh to None to force timestamp
             # refresh on the next buffer.
-            _adjustment = self.buffer_end + frame_count / self.timestamp_seconds_to_unit_conversion
+            _adjustment = (
+                self.buffer_end
+                + frame_count / self.timestamp_seconds_to_unit_conversion
+            )
             if buffer_end_timestamp < _adjustment:
                 buffer_end_timestamp = _adjustment
                 self.last_ts_refresh = None
