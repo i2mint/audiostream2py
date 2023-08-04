@@ -165,6 +165,7 @@ class BasePyAudioSourceReader(SourceReader):
         frames_per_buffer=1024,
         input_device=None,
         verbose=True,
+        ts_refresh_period=1000
     ):
         """
 
@@ -180,7 +181,10 @@ class BasePyAudioSourceReader(SourceReader):
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
         :param verbose: Permission to print stuff when we feel like it?
-
+        :param ts_refresh_period: period, in seconds, with which a buffer will be timestamped with  
+        the host-system time, instead of using the frame rate and frame count values. This limits 
+        the drift between buffer timestamps and host-system time due to frame rate innaccuracies. 
+        Crucial if we need to synchronize data from different sources.
         """
         super().__init__()
         self._init_kwargs = {
@@ -223,7 +227,8 @@ class BasePyAudioSourceReader(SourceReader):
         self.data = deque()
         self.buffer_start = None
         self.buffer_end = None
-        self._init_vars()
+        self.last_ts_refresh = None
+        self.ts_refresh_period = ts_refresh_period * self.timestamp_seconds_to_unit_conversion
 
     def _init_vars(self):
         if self._fp:
@@ -234,6 +239,7 @@ class BasePyAudioSourceReader(SourceReader):
 
         self.buffer_start = None
         self.buffer_end = None
+        self.last_ts_refresh = None
 
     def __repr__(self):
         def quote_strings(x):
@@ -354,10 +360,7 @@ class BasePyAudioSourceReader(SourceReader):
         return None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """Get buffer end timestamp based on the system time when data is sent to callback. Buffer
-        start timestamp is the buffer end of the last buffer. The very first start timestamp is
-        calculated back with frame count and sample rate.
-        See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream
+        """ See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream
 
         :param in_data: recorded input data, waveform
         :param frame_count: number of frames, sample count
@@ -380,26 +383,48 @@ class BasePyAudioSourceReader(SourceReader):
         return None, PaCallbackReturnCodes.paContinue
 
     def _set_buffer_start_end(self, frame_count):
-        """Set buffer end timestamp based on the system time when data is sent to callback. Buffer
-        start timestamp is the buffer end of the last buffer. The very first start timestamp is
-        calculated back with frame count and sample rate.
-
-        :param frame_count: used to estimate start time of very first buffer
+        """Set buffer timestamps when data is sent to callback. 
+        :param frame_count: number of frames contained in buffer
         :return: status flag
         """
         status_flag = PaStatusFlags.paNoError
-        buffer_end_timestamp = self.get_timestamp()
 
-        if self.buffer_end is None:
-            t_len = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
-            self.buffer_start = buffer_end_timestamp - t_len
+        # Buffer duration (time unit)
+        buffer_dur = frame_count * self.timestamp_seconds_to_unit_conversion / self.sr
+        # Host-system time
+        ts = self.get_timestamp()
+
+        # Timestamping buffer end...
+        if (self.buffer_end is None or
+            self.last_ts_refresh is None or
+            ts - self.last_ts_refresh > self.ts_refresh_period
+        ):
+            # with host-system time, because a refresh is needed or there is no info about a 
+            # previous buffer
+            buffer_end_timestamp = ts
+            self.last_ts_refresh = ts
         else:
-            if buffer_end_timestamp < (
-                _adjustment := self.buffer_end + frame_count / 1e6
-            ):
+            # based on timestamp of previous buffer otherwise
+            buffer_end_timestamp = self.buffer_end + buffer_dur
+
+        # Timestamping buffer start...
+        if self.buffer_end is None:
+            # by inference if there is no info about a previous buffer
+            self.buffer_start = buffer_end_timestamp - buffer_dur
+        else:
+            # based on timestamp of previous buffer otherwise.
+            # But first, checking if new buffer timestamp is posterior enough to previous buffer 
+            # timestamp. If not, we readjust and set last_ts_refresh to None to force timestamp 
+            # refresh on the next buffer.
+            _adjustment = self.buffer_end + frame_count / self.timestamp_seconds_to_unit_conversion
+            if buffer_end_timestamp < _adjustment:
                 buffer_end_timestamp = _adjustment
+                self.last_ts_refresh = None
                 status_flag = PaStatusFlags.hostTimeSync
+
             self.buffer_start = self.buffer_end
+
+        # Updating buffer end timestamp
         self.buffer_end = buffer_end_timestamp
         return status_flag
 
@@ -491,7 +516,7 @@ class FillErrorWithOnesMixin:
         :return: None, PaCallbackReturnCodes.paContinue
         """
 
-        if PaStatusFlags(status_flags) == PaStatusFlags.paInputOverflow:
+        if PaStatusFlags.paInputOverflow in PaStatusFlags(status_flags):
             self.buffer_start = None
             if self._first_error_timestamp is None:
                 # track when errors started
@@ -519,7 +544,7 @@ class FillErrorWithOnesMixin:
                         fill_data,
                         fill_count,
                         {},
-                        self._error_status_flag | status_flags,
+                        self._error_status_flag,
                     )
                 )
                 self._first_error_timestamp = None
