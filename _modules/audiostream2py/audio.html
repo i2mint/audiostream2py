@@ -250,6 +250,7 @@
         <span class="n">frames_per_buffer</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
         <span class="n">input_device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">ts_refresh_period</span><span class="o">=</span><span class="mi">1000</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 
@@ -265,7 +266,10 @@
 <span class="sd">            Unspecified (or None) uses default device.</span>
 <span class="sd">        :param frames_per_buffer: Specifies the number of frames per buffer.</span>
 <span class="sd">        :param verbose: Permission to print stuff when we feel like it?</span>
-
+<span class="sd">        :param ts_refresh_period: period, in seconds, with which a buffer will be timestamped with  </span>
+<span class="sd">        the host-system time, instead of using the frame rate and frame count values. This limits </span>
+<span class="sd">        the drift between buffer timestamps and host-system time due to frame rate innaccuracies. </span>
+<span class="sd">        Crucial if we need to synchronize data from different sources.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_kwargs</span> <span class="o">=</span> <span class="p">{</span>
@@ -308,7 +312,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_start</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_vars</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_ts_refresh</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ts_refresh_period</span> <span class="o">=</span> <span class="n">ts_refresh_period</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_seconds_to_unit_conversion</span>
 
     <span class="k">def</span> <span class="nf">_init_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fp</span><span class="p">:</span>
@@ -319,6 +324,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_start</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_ts_refresh</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">quote_strings</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -439,10 +445,7 @@
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_stream_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_data</span><span class="p">,</span> <span class="n">frame_count</span><span class="p">,</span> <span class="n">time_info</span><span class="p">,</span> <span class="n">status_flags</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get buffer end timestamp based on the system time when data is sent to callback. Buffer</span>
-<span class="sd">        start timestamp is the buffer end of the last buffer. The very first start timestamp is</span>
-<span class="sd">        calculated back with frame count and sample rate.</span>
-<span class="sd">        See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream</span>
 
 <span class="sd">        :param in_data: recorded input data, waveform</span>
 <span class="sd">        :param frame_count: number of frames, sample count</span>
@@ -465,26 +468,48 @@
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PaCallbackReturnCodes</span><span class="o">.</span><span class="n">paContinue</span>
 
     <span class="k">def</span> <span class="nf">_set_buffer_start_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_count</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set buffer end timestamp based on the system time when data is sent to callback. Buffer</span>
-<span class="sd">        start timestamp is the buffer end of the last buffer. The very first start timestamp is</span>
-<span class="sd">        calculated back with frame count and sample rate.</span>
-
-<span class="sd">        :param frame_count: used to estimate start time of very first buffer</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set buffer timestamps when data is sent to callback. </span>
+<span class="sd">        :param frame_count: number of frames contained in buffer</span>
 <span class="sd">        :return: status flag</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">status_flag</span> <span class="o">=</span> <span class="n">PaStatusFlags</span><span class="o">.</span><span class="n">paNoError</span>
-        <span class="n">buffer_end_timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">t_len</span> <span class="o">=</span> <span class="n">frame_count</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_seconds_to_unit_conversion</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sr</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">buffer_start</span> <span class="o">=</span> <span class="n">buffer_end_timestamp</span> <span class="o">-</span> <span class="n">t_len</span>
+        <span class="c1"># Buffer duration (time unit)</span>
+        <span class="n">buffer_dur</span> <span class="o">=</span> <span class="n">frame_count</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_seconds_to_unit_conversion</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sr</span>
+        <span class="c1"># Host-system time</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timestamp</span><span class="p">()</span>
+
+        <span class="c1"># Timestamping buffer end...</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_ts_refresh</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span>
+            <span class="n">ts</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_ts_refresh</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ts_refresh_period</span>
+        <span class="p">):</span>
+            <span class="c1"># with host-system time, because a refresh is needed or there is no info about a </span>
+            <span class="c1"># previous buffer</span>
+            <span class="n">buffer_end_timestamp</span> <span class="o">=</span> <span class="n">ts</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_ts_refresh</span> <span class="o">=</span> <span class="n">ts</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">buffer_end_timestamp</span> <span class="o">&lt;</span> <span class="p">(</span>
-                <span class="n">_adjustment</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="o">+</span> <span class="n">frame_count</span> <span class="o">/</span> <span class="mf">1e6</span>
-            <span class="p">):</span>
+            <span class="c1"># based on timestamp of previous buffer otherwise</span>
+            <span class="n">buffer_end_timestamp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="o">+</span> <span class="n">buffer_dur</span>
+
+        <span class="c1"># Timestamping buffer start...</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># by inference if there is no info about a previous buffer</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">buffer_start</span> <span class="o">=</span> <span class="n">buffer_end_timestamp</span> <span class="o">-</span> <span class="n">buffer_dur</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># based on timestamp of previous buffer otherwise.</span>
+            <span class="c1"># But first, checking if new buffer timestamp is posterior enough to previous buffer </span>
+            <span class="c1"># timestamp. If not, we readjust and set last_ts_refresh to None to force timestamp </span>
+            <span class="c1"># refresh on the next buffer.</span>
+            <span class="n">_adjustment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="o">+</span> <span class="n">frame_count</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">timestamp_seconds_to_unit_conversion</span>
+            <span class="k">if</span> <span class="n">buffer_end_timestamp</span> <span class="o">&lt;</span> <span class="n">_adjustment</span><span class="p">:</span>
                 <span class="n">buffer_end_timestamp</span> <span class="o">=</span> <span class="n">_adjustment</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_ts_refresh</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">status_flag</span> <span class="o">=</span> <span class="n">PaStatusFlags</span><span class="o">.</span><span class="n">hostTimeSync</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">buffer_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span>
+
+        <span class="c1"># Updating buffer end timestamp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">buffer_end</span> <span class="o">=</span> <span class="n">buffer_end_timestamp</span>
         <span class="k">return</span> <span class="n">status_flag</span>
 
@@ -576,7 +601,7 @@
 <span class="sd">        :return: None, PaCallbackReturnCodes.paContinue</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">PaStatusFlags</span><span class="p">(</span><span class="n">status_flags</span><span class="p">)</span> <span class="o">==</span> <span class="n">PaStatusFlags</span><span class="o">.</span><span class="n">paInputOverflow</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">PaStatusFlags</span><span class="o">.</span><span class="n">paInputOverflow</span> <span class="ow">in</span> <span class="n">PaStatusFlags</span><span class="p">(</span><span class="n">status_flags</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">buffer_start</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_error_timestamp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># track when errors started</span>
@@ -604,7 +629,7 @@
                         <span class="n">fill_data</span><span class="p">,</span>
                         <span class="n">fill_count</span><span class="p">,</span>
                         <span class="p">{},</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_error_status_flag</span> <span class="o">|</span> <span class="n">status_flags</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_error_status_flag</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_first_error_timestamp</span> <span class="o">=</span> <span class="kc">None</span>

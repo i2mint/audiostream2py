@@ -99,7 +99,7 @@
 <p>PyAudioSourceReader changed to handle errors and serve data in an easy-to-read dataclass.</p>
 <dl class="py method">
 <dt id="audiostream2py.audio.PyAudioSourceReader.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">rate</span><span class="o">=</span><span class="default_value">44100</span></em>, <em class="sig-param"><span class="n">width</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">unsigned</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">input_device_index</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">frames_per_buffer</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="n">input_device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#audiostream2py.audio.PyAudioSourceReader.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">rate</span><span class="o">=</span><span class="default_value">44100</span></em>, <em class="sig-param"><span class="n">width</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">unsigned</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">channels</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">input_device_index</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">frames_per_buffer</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="n">input_device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">ts_refresh_period</span><span class="o">=</span><span class="default_value">1000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#audiostream2py.audio.PyAudioSourceReader.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -115,9 +115,13 @@ Has to be the integer index, unlike input_device which can be a name too.
 Unspecified (or None) uses default device.</p></li>
 <li><p><strong>frames_per_buffer</strong> – Specifies the number of frames per buffer.</p></li>
 <li><p><strong>verbose</strong> – Permission to print stuff when we feel like it?</p></li>
+<li><p><strong>ts_refresh_period</strong> – period, in seconds, with which a buffer will be timestamped with</p></li>
 </ul>
 </dd>
 </dl>
+<p>the host-system time, instead of using the frame rate and frame count values. This limits
+the drift between buffer timestamps and host-system time due to frame rate innaccuracies.
+Crucial if we need to synchronize data from different sources.</p>
 </dd></dl>
 
 </dd></dl>
