@@ -5,7 +5,8 @@ timestamps and frame counts.
 
 import math
 from functools import cached_property
-from typing import Union, Sequence, Tuple, Literal, Optional
+from typing import Union, Tuple, Literal, Optional
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from audiostream2py.enum import PaStatusFlags
@@ -13,8 +14,8 @@ from audiostream2py.enum import PaStatusFlags
 
 @dataclass(frozen=True)
 class AudioSegment:
-    start_date: Union[int, float]
-    end_date: Union[int, float]
+    start_date: int | float
+    end_date: int | float
     waveform: bytes
     frame_count: int
     status_flags: PaStatusFlags
@@ -48,38 +49,38 @@ class AudioSegment:
         return False
 
     @property
-    def bt(self) -> Optional[Union[int, float]]:
+    def bt(self) -> int | float | None:
         """Legacy naming: bottom time"""
         return self.start_date
 
     @property
-    def tt(self) -> Optional[Union[int, float]]:
+    def tt(self) -> int | float | None:
         """Legacy naming: top time"""
         return self.end_date
 
     @cached_property
-    def frame_size(self) -> Optional[int]:
+    def frame_size(self) -> int | None:
         """Byte count per frame"""
         if self.is_empty():
             return None
         return int(len(self.waveform) / self.frame_count)
 
     @property
-    def duration(self) -> Optional[Union[int, float]]:
+    def duration(self) -> int | float | None:
         """AudioSegment duration, in the same unit as start and end date"""
         if self.is_empty():
             return None
         return self.end_date - self.start_date
 
     @property
-    def frame_period(self) -> Optional[float]:
+    def frame_period(self) -> float | None:
         """frame period, in the same unit as start and end date"""
         if self.is_empty():
             return None
         return self.duration / self.frame_count
 
     @property
-    def frame_rate(self) -> Optional[float]:
+    def frame_rate(self) -> float | None:
         """frame rate, in the same unit as start and end date, inversed"""
         if self.is_empty():
             return None
@@ -124,7 +125,7 @@ class AudioSegment:
         self._test_if_not_empty_for_comparison(other)
         return self.start_date == other.start_date and self.end_date == other.end_date
 
-    def __getitem__(self, ts: Union[slice, int, float]) -> 'AudioSegment':
+    def __getitem__(self, ts: slice | int | float) -> 'AudioSegment':
         """Slice waveform and return AudioSegment with updated timestamps and data.
 
         :param ts: timestamp in the form of slice or scalar
@@ -172,7 +173,7 @@ class AudioSegment:
 
         return AudioSegment(start_date, end_date, waveform, frame_count, status_flags)
 
-    def get_ts_of_frame_index(self, frame_idx: int) -> Tuple[float, float]:
+    def get_ts_of_frame_index(self, frame_idx: int) -> tuple[float, float]:
         """get bt and tt of frame at index frame_idx
 
         :param frame_idx: frame index
@@ -257,7 +258,7 @@ class AudioSegment:
             start_date, end_date, waveform, frame_count, self.status_flags
         )
 
-    def _get_frame(self, ts: Union[int, float]) -> 'AudioSegment':
+    def _get_frame(self, ts: int | float) -> 'AudioSegment':
         """Get frame at timestamp.
 
         :param ts: timestamp microseconds

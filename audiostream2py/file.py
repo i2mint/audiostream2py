@@ -13,7 +13,7 @@ from audiostream2py import AudioSegment, PaStatusFlags
 from audiostream2py.reader import AudioBufferReader
 
 
-def resolve_file(file: Union[str, bytes, Path, BytesIO]) -> Union[str, BytesIO]:
+def resolve_file(file: str | bytes | Path | BytesIO) -> str | BytesIO:
     """Resolve file into format excepted by wave.open()
 
     :param file: file path or bytes
@@ -27,7 +27,7 @@ def resolve_file(file: Union[str, bytes, Path, BytesIO]) -> Union[str, BytesIO]:
 
 
 def file_to_audio_segment(
-    file: Union[str, bytes, Path, BytesIO], start_date=0
+    file: str | bytes | Path | BytesIO, start_date=0
 ) -> AudioSegment:
     """Read wav file into an AudioSegment
 
@@ -56,7 +56,7 @@ class WavFileSourceReader(SourceReader):
 
     def __init__(
         self,
-        file: Union[str, bytes, Path, BytesIO],
+        file: str | bytes | Path | BytesIO,
         *,
         frames_per_buffer=1024,
         start_date=0

@@ -53,7 +53,7 @@ class AudioBufferReader(BufferReader):
             else:
                 stop = None
 
-            items: List[AudioSegment] = reader.range(start, stop, s.step)
+            items: list[AudioSegment] = reader.range(start, stop, s.step)
         if s.start:
             items[0] = items[0][s.start :]
         if s.stop:

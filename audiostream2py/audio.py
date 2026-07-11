@@ -61,7 +61,8 @@ __all__ = [
 from collections import deque
 from contextlib import suppress, contextmanager
 import math
-from typing import Generator, List, Callable, Union
+from typing import List, Union
+from collections.abc import Generator, Callable
 import re
 
 import pyaudio
@@ -265,7 +266,7 @@ class BasePyAudioSourceReader(SourceReader):
         return one_third_read_rate
 
     @property
-    def sr(self) -> Union[int, float]:
+    def sr(self) -> int | float:
         return self._init_kwargs['rate']
 
     @property
@@ -452,7 +453,7 @@ class BasePyAudioSourceReader(SourceReader):
             cls._terminate_pyaudio()
 
     @classmethod
-    def list_device_info(cls) -> List[dict]:
+    def list_device_info(cls) -> list[dict]:
         """
         .. todo::
             * filter for only devices with input channels
