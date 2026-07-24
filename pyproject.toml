@@ -173,7 +173,11 @@ wheel = true
 enabled = true
 
 [tool.wads.ci.docs]
-enabled = true
+# Disabled: the docs job builds the package to extract API docs, but it does
+# not run the "Install System Dependencies" step, so pyaudio can't compile
+# (portaudio.h missing) — a wads CI structural gap. Re-enable once the docs
+# job installs [tool.wads.ops.*] system deps.
+enabled = false
 builder = "epythet"
 ignore_paths = [
     "tests/",
