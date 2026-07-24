@@ -36,7 +36,7 @@ def file_to_audio_segment(
     :return:
     """
     file = resolve_file(file)
-    with wave.open(file, 'rb') as wave_file:
+    with wave.open(file, "rb") as wave_file:
         framerate = wave_file.getframerate()
         nframes = wave_file.getnframes()
         end_date = start_date + nframes * 1e6 / framerate
@@ -59,13 +59,13 @@ class WavFileSourceReader(SourceReader):
         file: str | bytes | Path | BytesIO,
         *,
         frames_per_buffer=1024,
-        start_date=0
+        start_date=0,
     ):
         super().__init__()
         self.file = resolve_file(file)
         self.frames_per_buffer = frames_per_buffer
         self.start_date = start_date
-        self._fp: wave.Wave_read = wave.open(self.file, 'rb')
+        self._fp: wave.Wave_read = wave.open(self.file, "rb")
 
         self._index = 0
         self._next_bt = self.start_date
@@ -73,12 +73,12 @@ class WavFileSourceReader(SourceReader):
     @property
     def info(self) -> dict:
         return {
-            'channels': self._fp.getnchannels(),
-            'width': self._fp.getsampwidth(),
-            'rate': self._fp.getframerate(),
-            'n_frames': self._fp.getnframes(),
-            'frames_per_buffer': self.frames_per_buffer,
-            'bt': self.start_date,
+            "channels": self._fp.getnchannels(),
+            "width": self._fp.getsampwidth(),
+            "rate": self._fp.getframerate(),
+            "n_frames": self._fp.getnframes(),
+            "frames_per_buffer": self.frames_per_buffer,
+            "bt": self.start_date,
         }
 
     def open(self) -> None:

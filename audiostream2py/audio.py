@@ -51,11 +51,11 @@ Meaning the base class at the right and mixins with overloading methods to the l
 """
 
 __all__ = [
-    'PyAudioSourceReader',
-    'PaStatusFlags',
-    'PaCallbackReturnCodes',
-    'get_input_device_index',
-    'AudioSegment',
+    "PyAudioSourceReader",
+    "PaStatusFlags",
+    "PaCallbackReturnCodes",
+    "get_input_device_index",
+    "AudioSegment",
 ]
 
 from collections import deque
@@ -79,9 +79,9 @@ def list_recording_device_index_names():
     [(2, 'MacBook Pro Microphone'), (4, 'BluetoothHeadset'), (6, 'ZoomAudioDevice')]
     """
     return sorted(
-        (d['index'], d['name'])
+        (d["index"], d["name"])
         for d in PyAudioSourceReader.list_device_info()
-        if d['maxInputChannels'] > 0
+        if d["maxInputChannels"] > 0
     )
 
 
@@ -98,16 +98,16 @@ def match_device_info(filt: Callable, assert_unique=True):
     it = _match_device_info(filt)
     info = next(it, None)
     if info is None:
-        raise RuntimeError('No device infos matched your filter')
+        raise RuntimeError("No device infos matched your filter")
     if assert_unique:
         if next(it, None) is not None:
-            raise RuntimeError('More than one device info dict matched your filter')
+            raise RuntimeError("More than one device info dict matched your filter")
     return info
 
 
 def is_recording_device(device_info: dict):
     """Says if a device (info) is a recording device"""
-    return device_info.get('maxInputChannels', 0) > 0
+    return device_info.get("maxInputChannels", 0) > 0
 
 
 def get_recording_device_info_by_name(name_pattern, assert_unique=True):
@@ -115,7 +115,7 @@ def get_recording_device_info_by_name(name_pattern, assert_unique=True):
     name_pattern = re.compile(name_pattern)
 
     def filt(device_info):
-        return name_pattern.search(device_info['name']) and is_recording_device(
+        return name_pattern.search(device_info["name"]) and is_recording_device(
             device_info
         )
 
@@ -128,7 +128,7 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
     if input_device is not None and input_device_index is not None:
         raise RuntimeError(
             f"You can't have specify both input_device and input_device_index!: "
-            f'{input_device=} and {input_device_index=}'
+            f"{input_device=} and {input_device_index=}"
         )
     # If no information on the device is given, ask pyaudio to find a default
     if input_device is None and input_device_index is None:
@@ -138,18 +138,18 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
 
             print(
                 f"Will use {info['name']} (index={info['index']}) as an input device",
-                end='\r',
+                end="\r",
             )
-            print(f"It's info:\n{json.dumps(info, indent=2)}", end='\r')
+            print(f"It's info:\n{json.dumps(info, indent=2)}", end="\r")
     else:
         input_device = input_device or input_device_index
         if isinstance(input_device, int):
-            info = {'index': input_device}
+            info = {"index": input_device}
         elif isinstance(input_device, Callable):
             info = match_device_info(filt=input_device)
         else:  # should be string or re.compile instance
             info = get_recording_device_info_by_name(name_pattern=input_device)
-    return info['index']
+    return info["index"]
 
 
 class BasePyAudioSourceReader(SourceReader):
@@ -166,7 +166,7 @@ class BasePyAudioSourceReader(SourceReader):
         frames_per_buffer=1024,
         input_device=None,
         verbose=True,
-        ts_refresh_period=1000
+        ts_refresh_period=1000,
     ):
         """
 
@@ -182,14 +182,14 @@ class BasePyAudioSourceReader(SourceReader):
             Unspecified (or None) uses default device.
         :param frames_per_buffer: Specifies the number of frames per buffer.
         :param verbose: Permission to print stuff when we feel like it?
-        :param ts_refresh_period: period, in seconds, with which a buffer will be timestamped with  
-        the host-system time, instead of using the frame rate and frame count values. This limits 
-        the drift between buffer timestamps and host-system time due to frame rate innaccuracies. 
+        :param ts_refresh_period: period, in seconds, with which a buffer will be timestamped with
+        the host-system time, instead of using the frame rate and frame count values. This limits
+        the drift between buffer timestamps and host-system time due to frame rate innaccuracies.
         Crucial if we need to synchronize data from different sources.
         """
         super().__init__()
         self._init_kwargs = {
-            k: v for k, v in locals().items() if k not in ('self', '__class__')
+            k: v for k, v in locals().items() if k not in ("self", "__class__")
         }
         input_device_index = get_input_device_index(
             input_device=input_device,
@@ -209,18 +209,18 @@ class BasePyAudioSourceReader(SourceReader):
             )
 
         self._pyaudio_open_params = {
-            'rate': rate,
-            'channels': channels,
-            'format': input_format,
-            'input': True,
-            'output': False,
-            'input_device_index': input_device_index,
-            'output_device_index': None,
-            'frames_per_buffer': frames_per_buffer,
-            'start': True,
-            'input_host_api_specific_stream_info': None,
-            'output_host_api_specific_stream_info': None,
-            'stream_callback': self._stream_callback,
+            "rate": rate,
+            "channels": channels,
+            "format": input_format,
+            "input": True,
+            "output": False,
+            "input_device_index": input_device_index,
+            "output_device_index": None,
+            "frames_per_buffer": frames_per_buffer,
+            "start": True,
+            "input_host_api_specific_stream_info": None,
+            "output_host_api_specific_stream_info": None,
+            "stream_callback": self._stream_callback,
         }
 
         self._fp = None
@@ -229,7 +229,9 @@ class BasePyAudioSourceReader(SourceReader):
         self.buffer_start = None
         self.buffer_end = None
         self.last_ts_refresh = None
-        self.ts_refresh_period = ts_refresh_period * self.timestamp_seconds_to_unit_conversion
+        self.ts_refresh_period = (
+            ts_refresh_period * self.timestamp_seconds_to_unit_conversion
+        )
 
     def _init_vars(self):
         if self._fp:
@@ -246,10 +248,10 @@ class BasePyAudioSourceReader(SourceReader):
         def quote_strings(x):
             return f"'{x}'" if isinstance(x, str) else x
 
-        args_string = ', '.join(
-            f'{k}={quote_strings(v)}' for k, v in self._init_kwargs.items()
+        args_string = ", ".join(
+            f"{k}={quote_strings(v)}" for k, v in self._init_kwargs.items()
         )
-        return f'{type(self).__name__}({args_string})'
+        return f"{type(self).__name__}({args_string})"
 
     @classmethod
     def get_default_input_device_info(cls):
@@ -260,14 +262,14 @@ class BasePyAudioSourceReader(SourceReader):
     def sleep_time_on_read_none_s(self) -> float:
         """One third of the expected rate frames_per_buffer will be filled"""
         seconds_per_read = (
-            self._init_kwargs['frames_per_buffer'] / self._init_kwargs['rate']
+            self._init_kwargs["frames_per_buffer"] / self._init_kwargs["rate"]
         )
         one_third_read_rate = seconds_per_read / 3
         return one_third_read_rate
 
     @property
     def sr(self) -> int | float:
-        return self._init_kwargs['rate']
+        return self._init_kwargs["rate"]
 
     @property
     def info(self) -> dict:
@@ -303,12 +305,12 @@ class BasePyAudioSourceReader(SourceReader):
 
         :return: dict
         """
-        _info = {'start_date': self._open_time}
+        _info = {"start_date": self._open_time}
         _info.update(**self._init_kwargs)
         with suppress(Exception):
             _info.update(
                 device_info=self._pyaudio_instance.get_device_info_by_index(
-                    self._init_kwargs['input_device_index']
+                    self._init_kwargs["input_device_index"]
                 )
             )
         return _info
@@ -361,7 +363,7 @@ class BasePyAudioSourceReader(SourceReader):
         return None
 
     def _stream_callback(self, in_data, frame_count, time_info, status_flags):
-        """ See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream
+        """See _stream_callback in https://people.csail.mit.edu/hubert/pyaudio/docs/#class-stream
 
         :param in_data: recorded input data, waveform
         :param frame_count: number of frames, sample count
@@ -384,7 +386,7 @@ class BasePyAudioSourceReader(SourceReader):
         return None, PaCallbackReturnCodes.paContinue
 
     def _set_buffer_start_end(self, frame_count):
-        """Set buffer timestamps when data is sent to callback. 
+        """Set buffer timestamps when data is sent to callback.
         :param frame_count: number of frames contained in buffer
         :return: status flag
         """
@@ -396,11 +398,12 @@ class BasePyAudioSourceReader(SourceReader):
         ts = self.get_timestamp()
 
         # Timestamping buffer end...
-        if (self.buffer_end is None or
-            self.last_ts_refresh is None or
-            ts - self.last_ts_refresh > self.ts_refresh_period
+        if (
+            self.buffer_end is None
+            or self.last_ts_refresh is None
+            or ts - self.last_ts_refresh > self.ts_refresh_period
         ):
-            # with host-system time, because a refresh is needed or there is no info about a 
+            # with host-system time, because a refresh is needed or there is no info about a
             # previous buffer
             buffer_end_timestamp = ts
             self.last_ts_refresh = ts
@@ -414,10 +417,13 @@ class BasePyAudioSourceReader(SourceReader):
             self.buffer_start = buffer_end_timestamp - buffer_dur
         else:
             # based on timestamp of previous buffer otherwise.
-            # But first, checking if new buffer timestamp is posterior enough to previous buffer 
-            # timestamp. If not, we readjust and set last_ts_refresh to None to force timestamp 
+            # But first, checking if new buffer timestamp is posterior enough to previous buffer
+            # timestamp. If not, we readjust and set last_ts_refresh to None to force timestamp
             # refresh on the next buffer.
-            _adjustment = self.buffer_end + frame_count / self.timestamp_seconds_to_unit_conversion
+            _adjustment = (
+                self.buffer_end
+                + frame_count / self.timestamp_seconds_to_unit_conversion
+            )
             if buffer_end_timestamp < _adjustment:
                 buffer_end_timestamp = _adjustment
                 self.last_ts_refresh = None
@@ -484,7 +490,7 @@ class BasePyAudioSourceReader(SourceReader):
     def list_recording_devices(cls):
         """List names of available recording devices"""
         return sorted(
-            d['name'] for d in cls.list_device_info() if d['maxInputChannels'] > 0
+            d["name"] for d in cls.list_device_info() if d["maxInputChannels"] > 0
         )
 
     @classmethod
@@ -493,7 +499,7 @@ class BasePyAudioSourceReader(SourceReader):
             (
                 dev
                 for dev in cls.list_device_info()
-                if dev['index'] == input_device_index
+                if dev["index"] == input_device_index
             ),
             None,
         )
@@ -573,8 +579,8 @@ class FillErrorWithOnesMixin:
         """
 
         single_fill_sample = (
-            self.FILL_VALUE.to_bytes(self._init_kwargs['width'], 'little')
-            * self._init_kwargs['channels']
+            self.FILL_VALUE.to_bytes(self._init_kwargs["width"], "little")
+            * self._init_kwargs["channels"]
         )
         samples_per_time_unit = self.sr / self.timestamp_seconds_to_unit_conversion
 
@@ -602,10 +608,10 @@ class DictDataMixin:
         :return: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
         """
         return {
-            'bt': start_date,
-            'tt': end_data,
-            'wf': waveform,
-            'status_flags': status_flags,
+            "bt": start_date,
+            "tt": end_data,
+            "wf": waveform,
+            "status_flags": status_flags,
         }
 
     def key(self, data) -> ComparableType:
@@ -613,7 +619,7 @@ class DictDataMixin:
         :param data: {'bt': timestamp, 'wf': waveform, 'status_flags': status_flags}
         :return: data['tt']
         """
-        return data['tt']
+        return data["tt"]
 
 
 class AudioSegmentMixin:

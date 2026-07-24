@@ -34,7 +34,7 @@ class AudioBufferReader(BufferReader):
                 head: AudioSegment = reader[0]
                 if s.start < head.start_date:
                     raise OverlapsPastError(
-                        f'You asked for {s}, but the buffer starts from: {head.start_date}'
+                        f"You asked for {s}, but the buffer starts from: {head.start_date}"
                     )
                 start = reader.key(reader.find_le(s.start))
             else:
@@ -44,7 +44,7 @@ class AudioBufferReader(BufferReader):
                 tail: AudioSegment = reader[-1]
                 if s.stop > tail.end_date:
                     raise OverlapsFutureError(
-                        f'You asked for {s}, but the buffer stops at: {tail.end_date}'
+                        f"You asked for {s}, but the buffer stops at: {tail.end_date}"
                     )
                 if tail.start_date < s.stop < tail.end_date:
                     stop = reader.key(tail)
