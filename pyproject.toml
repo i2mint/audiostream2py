@@ -98,6 +98,16 @@ doctest_optionflags = [
     "ELLIPSIS",
 ]
 
+[tool.wads.ops.portaudio]
+description = "PortAudio — the native library pyaudio binds to (provides portaudio.h)"
+url = "https://www.portaudio.com/"
+check.linux = "ldconfig -p | grep -q libportaudio"
+check.macos = "brew list portaudio"
+check.windows = "python -c \"import pyaudio\""
+install.linux = ["sudo apt-get update", "sudo apt-get install -y portaudio19-dev"]
+install.macos = "brew install portaudio"
+install.windows = "echo pyaudio ships prebuilt Windows wheels; no system install needed"
+
 [tool.wads.ci]
 project_name = ""
 
