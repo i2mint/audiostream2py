@@ -6,19 +6,35 @@ build-backend = "hatchling.build"
 
 [project]
 name = "audiostream2py"
-version = "0.1.19"
+version = "0.1.23"
 description = "stream2py interface for audio"
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = []
-authors = []
+license = "Apache-2.0"
+keywords = [
+    "audio",
+    "stream",
+    "stream2py",
+    "pyaudio",
+    "real-time",
+    "signal-processing",
+]
+authors = [
+    { name = "Thor Whalen" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
+]
 dependencies = [
     "stream2py",
     "pyaudio",
 ]
-
-[project.license]
-text = "Apache-2.0"
 
 [project.urls]
 Homepage = "https://github.com/i2mint/audiostream2py"
@@ -75,7 +91,7 @@ convention = "google"
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [
-    "tests",
+    "audiostream2py",
 ]
 doctest_optionflags = [
     "NORMALIZE_WHITESPACE",

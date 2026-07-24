@@ -13,8 +13,10 @@ class PaStatusFlags(IntFlag):
     <PaStatusFlags.paNoError: 0>
     >>> PaStatusFlags(2)
     <PaStatusFlags.paInputOverflow: 2>
-    >>> PaStatusFlags(3)
-    <PaStatusFlags.paInputOverflow|paInputUnderflow: 3>
+    >>> PaStatusFlags(3).value  # combined flag; the repr's order is Python-version dependent
+    3
+    >>> PaStatusFlags(3) == PaStatusFlags.paInputUnderflow | PaStatusFlags.paInputOverflow
+    True
     >>> PaStatusFlags.paInputOverflow in PaStatusFlags(3)  # Check if contains certain error
     True
     >>> PaStatusFlags.paNoError == PaStatusFlags(3)  # Check for no error
