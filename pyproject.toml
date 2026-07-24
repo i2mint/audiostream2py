@@ -99,7 +99,7 @@ doctest_optionflags = [
 ]
 
 [tool.wads.ops.portaudio]
-description = "PortAudio — the native library pyaudio binds to (provides portaudio.h)"
+description = "PortAudio - the native library pyaudio binds to (provides portaudio.h)"
 url = "https://www.portaudio.com/"
 check.linux = "ldconfig -p | grep -q libportaudio"
 check.macos = "brew list portaudio"
@@ -153,7 +153,10 @@ exclude_paths = [
     "examples",
     "scrap",
 ]
-test_on_windows = true
+# PortAudio-backed audio capture is finicky on headless Windows CI (and the
+# wads install-system-deps action can't encode its ✓ output on cp1252) — Linux
+# + macOS cover it.
+test_on_windows = false
 
 [tool.wads.ci.metrics]
 enabled = true

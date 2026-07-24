@@ -3,7 +3,10 @@ import math
 
 from audiostream2py import AudioSegment, PaStatusFlags
 import pytest
-from recode import decode_pcm_bytes
+
+# `recode` is an optional test-only dependency; skip this module if absent.
+recode = pytest.importorskip("recode")
+decode_pcm_bytes = recode.decode_pcm_bytes
 
 
 def mock_audio_data(rate: int, width: int, channels: int, frames_per_buffer: int):
