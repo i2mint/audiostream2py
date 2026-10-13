@@ -80,3 +80,10 @@ def test_terminate_failure_is_raised_and_instance_kept(reader):
 def test_close_is_idempotent(reader):
     reader.close()
     reader.close()  # nothing open, nothing to terminate, no error
+
+
+def test_terminate_with_a_mocked_pyaudio_class_does_not_raise(reader, monkeypatch):
+    """A caller's tests may patch ``pyaudio.PyAudio`` with a non-type mock."""
+    monkeypatch.setattr(pyaudio, "PyAudio", object())
+    BasePyAudioSourceReader._pyaudio_instance = object()
+    BasePyAudioSourceReader._terminate_pyaudio()

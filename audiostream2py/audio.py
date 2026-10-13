@@ -514,7 +514,8 @@ class BasePyAudioSourceReader(SourceReader):
         The instance reference is only dropped once ``terminate`` has succeeded.
         """
         instance = cls._pyaudio_instance
-        if isinstance(instance, pyaudio.PyAudio):
+        pyaudio_type = pyaudio.PyAudio  # may be a mock in a caller's tests
+        if isinstance(pyaudio_type, type) and isinstance(instance, pyaudio_type):
             _release(
                 instance.terminate,
                 attempts=cls.release_attempts,
