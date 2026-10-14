@@ -1,5 +1,5 @@
 {
-  "collection_duration_seconds": 3.2888479232788086,
+  "collection_duration_seconds": 3.7170464992523193,
   "commit_message": "Retry then raise on PyAudio close/terminate instead of suppressing errors (#7)\n\n* Retry then raise on PyAudio close/terminate instead of suppressing errors\n\nCloses #4.\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* Guard the PyAudio type check against a mocked pyaudio.PyAudio\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>",
   "commit_sha": "845bf77f0b31ce9fa7d59663786649c7cdc88ffa",
   "metrics": {
@@ -11,19 +11,19 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 10632,
-      "comment_lines_ratio": 0.05196887342118641,
-      "docs_lines": 15615,
-      "empty_lines": 23313,
-      "empty_lines_ratio": 0.11395319282055293,
-      "files_analyzed": 535,
-      "function_lines": 72871,
-      "function_lines_ratio": 0.35619109998826887,
-      "mean_lines_per_function": 15.624142367066895,
-      "num_classes": 1296,
-      "num_functions": 4664,
+      "comment_lines": 11128,
+      "comment_lines_ratio": 0.05269787749921862,
+      "docs_lines": 16557,
+      "empty_lines": 24395,
+      "empty_lines_ratio": 0.115525226598979,
+      "files_analyzed": 546,
+      "function_lines": 77493,
+      "function_lines_ratio": 0.3669766913234138,
+      "mean_lines_per_function": 15.576482412060301,
+      "num_classes": 1356,
+      "num_functions": 4975,
       "pypi_version": "0.1.25",
-      "total_lines": 204584
+      "total_lines": 211166
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -42,6 +42,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-14T02:14:34.972803Z",
+  "timestamp": "2026-10-14T02:14:40.186617Z",
   "workflow_status": {}
 }
