@@ -60,7 +60,9 @@ __all__ = [
 
 from collections import deque
 from contextlib import suppress, contextmanager
+import logging
 import math
+import time
 from typing import List, Union
 from collections.abc import Generator, Callable
 import re
@@ -152,8 +154,57 @@ def get_input_device_index(input_device=None, input_device_index=None, verbose=T
     return info["index"]
 
 
+_log = logging.getLogger(__name__)
+
+#: How many times releasing a PortAudio resource (stop/close a stream, terminate PyAudio)
+#: is attempted before the failure is raised.
+RELEASE_ATTEMPTS = 3
+
+#: Seconds to wait between two attempts at releasing a PortAudio resource.
+RELEASE_RETRY_DELAY_S = 0.05
+
+
+def _release(action: Callable, *, attempts: int, retry_delay_s: float):
+    """Call ``action()``, retrying on failure; raise the last error when attempts run out.
+
+    Releasing PortAudio resources must not fail silently: a stream or instance that was
+    not released leaves the device busy, and the next ``open`` then fails far from the cause.
+
+    >>> calls = []
+    >>> def flaky():
+    ...     calls.append(1)
+    ...     if len(calls) < 3:
+    ...         raise OSError('busy')
+    >>> _release(flaky, attempts=3, retry_delay_s=0)
+    >>> len(calls)
+    3
+    >>> _release(lambda: 1 / 0, attempts=2, retry_delay_s=0)
+    Traceback (most recent call last):
+      ...
+    ZeroDivisionError: division by zero
+    """
+    for attempt in range(1, attempts + 1):
+        try:
+            return action()
+        except Exception as exc:
+            if attempt == attempts:
+                raise
+            _log.warning(
+                "%s failed (attempt %d/%d): %r",
+                getattr(action, "__qualname__", action),
+                attempt,
+                attempts,
+                exc,
+            )
+            time.sleep(retry_delay_s)
+
+
 class BasePyAudioSourceReader(SourceReader):
     _pyaudio_instance = None
+    #: Attempts at releasing the stream / PyAudio instance on ``close`` before raising.
+    release_attempts = RELEASE_ATTEMPTS
+    #: Seconds between two release attempts.
+    release_retry_delay_s = RELEASE_RETRY_DELAY_S
 
     def __init__(
         self,
@@ -346,12 +397,27 @@ class BasePyAudioSourceReader(SourceReader):
         self._fp = self._pyaudio_instance.open(**self._pyaudio_open_params)
 
     def close(self):
-        """Stop audio stream"""
-        with suppress(Exception):
-            self._fp.stop_stream()
-        with suppress(Exception):
-            self._fp.close()
-        self._terminate_pyaudio()
+        """Stop and release the audio stream, then terminate PyAudio.
+
+        Each step is retried (``release_attempts``) and a failure that persists is raised,
+        never swallowed, because an unreleased PortAudio resource breaks the next ``open``.
+        PyAudio is terminated even when the stream could not be closed; the stream is kept
+        in ``_fp`` in that case, so a later ``close`` retries it. Closing twice is a no-op.
+        """
+        retry = dict(
+            attempts=self.release_attempts, retry_delay_s=self.release_retry_delay_s
+        )
+        try:
+            if self._fp is not None:
+                try:
+                    _release(self._fp.stop_stream, **retry)
+                except Exception as exc:
+                    # Closing a stream aborts it, so only a failed close is fatal.
+                    _log.warning("stop_stream failed, closing anyway: %r", exc)
+                _release(self._fp.close, **retry)
+                self._fp = None
+        finally:
+            self._terminate_pyaudio()
 
     def read(self):
         """Returns one data item as structured by PyAudioSourceReader.data_to_append
@@ -443,12 +509,19 @@ class BasePyAudioSourceReader(SourceReader):
 
     @classmethod
     def _terminate_pyaudio(cls):
-        with suppress(Exception):
-            if cls._pyaudio_instance is not None and isinstance(
-                cls._pyaudio_instance, (pyaudio.PyAudio,)
-            ):
-                cls._pyaudio_instance.terminate()
-                cls._pyaudio_instance = None
+        """Terminate the shared PyAudio instance (retrying); raise if it cannot be.
+
+        The instance reference is only dropped once ``terminate`` has succeeded.
+        """
+        instance = cls._pyaudio_instance
+        pyaudio_type = pyaudio.PyAudio  # may be a mock in a caller's tests
+        if isinstance(pyaudio_type, type) and isinstance(instance, pyaudio_type):
+            _release(
+                instance.terminate,
+                attempts=cls.release_attempts,
+                retry_delay_s=cls.release_retry_delay_s,
+            )
+            cls._pyaudio_instance = None
 
     @classmethod
     @contextmanager
