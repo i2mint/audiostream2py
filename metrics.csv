@@ -1,26 +1,26 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-20T03:17:57.259741Z
-commit_sha,ff197c765f8a0bab4b73f2ed27eeebcf2e67586a
-commit_message,"PyAudioSourceReader: per-reader PyAudio instance, fresh instance per device query (#8)"
+timestamp,2026-10-20T03:19:59.836856Z
+commit_sha,d10af9bb4abaf13a9a23e5ebd1951dac11ae6afa
+commit_message,Merge master into fix/8 (#8)
 python_version,3.10
-metrics.umpyre_stats.num_functions,4987
+metrics.umpyre_stats.num_functions,4988
 metrics.umpyre_stats.num_classes,1356
-metrics.umpyre_stats.total_lines,211507
-metrics.umpyre_stats.empty_lines,24456
-metrics.umpyre_stats.comment_lines,11151
-metrics.umpyre_stats.docs_lines,16605
-metrics.umpyre_stats.function_lines,77717
-metrics.umpyre_stats.empty_lines_ratio,0.11562737876287782
-metrics.umpyre_stats.comment_lines_ratio,0.05272165933042405
-metrics.umpyre_stats.function_lines_ratio,0.3674441035048485
-metrics.umpyre_stats.mean_lines_per_function,15.583918187286946
-metrics.umpyre_stats.files_analyzed,550
-metrics.umpyre_stats.pypi_version,0.1.25
+metrics.umpyre_stats.total_lines,211616
+metrics.umpyre_stats.empty_lines,24470
+metrics.umpyre_stats.comment_lines,11158
+metrics.umpyre_stats.docs_lines,16630
+metrics.umpyre_stats.function_lines,77777
+metrics.umpyre_stats.empty_lines_ratio,0.11563397852714351
+metrics.umpyre_stats.comment_lines_ratio,0.05272758203538485
+metrics.umpyre_stats.function_lines_ratio,0.367538371389687
+metrics.umpyre_stats.mean_lines_per_function,15.592822774659181
+metrics.umpyre_stats.files_analyzed,551
+metrics.umpyre_stats.pypi_version,0.1.26
 metrics.workflow_status.last_run_status,success
-metrics.workflow_status.last_success_timestamp,2026-10-14T02:16:17Z
+metrics.workflow_status.last_success_timestamp,2026-10-20T03:18:02Z
 metrics.workflow_status.recent_failure_count,0
-metrics.workflow_status.run_url,https://github.com/i2mint/audiostream2py/actions/runs/38500063783
+metrics.workflow_status.run_url,https://github.com/i2mint/audiostream2py/actions/runs/39363454114
 metrics.workflow_status.total_runs_analyzed,10
 metrics.wily.cyclomatic_avg,0.0
 metrics.wily.maintainability_index,0.0
@@ -36,4 +36,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,2.899980306625366
+collection_duration_seconds,2.4587478637695312
