@@ -1,8 +1,8 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-20T03:20:06.451062Z
-commit_sha,3e8e6fe7350caaf8b8572b1b0e9c7e7f595fdada
-commit_message,Merge d10af9bb4abaf13a9a23e5ebd1951dac11ae6afa into 57a696e98994ee752be614d8ff3d6bfe76a1035c
+timestamp,2026-10-20T03:20:10.655704Z
+commit_sha,d10af9bb4abaf13a9a23e5ebd1951dac11ae6afa
+commit_message,Merge master into fix/8 (#8)
 python_version,3.10
 metrics.umpyre_stats.num_functions,4677
 metrics.umpyre_stats.num_classes,1296
@@ -36,4 +36,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,2.589128255844116
+collection_duration_seconds,2.82338547706604
