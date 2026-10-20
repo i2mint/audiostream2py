@@ -1,5 +1,5 @@
 {
-  "collection_duration_seconds": 3.151188373565674,
+  "collection_duration_seconds": 2.899980306625366,
   "commit_message": "PyAudioSourceReader: per-reader PyAudio instance, fresh instance per device query (#8)",
   "commit_sha": "ff197c765f8a0bab4b73f2ed27eeebcf2e67586a",
   "metrics": {
@@ -11,19 +11,19 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 10655,
-      "comment_lines_ratio": 0.051994632182505794,
-      "docs_lines": 15663,
-      "empty_lines": 23374,
-      "empty_lines_ratio": 0.1140612419177748,
-      "files_analyzed": 539,
-      "function_lines": 73095,
-      "function_lines_ratio": 0.3566914724899353,
-      "mean_lines_per_function": 15.631950384944396,
-      "num_classes": 1296,
-      "num_functions": 4676,
+      "comment_lines": 11151,
+      "comment_lines_ratio": 0.05272165933042405,
+      "docs_lines": 16605,
+      "empty_lines": 24456,
+      "empty_lines_ratio": 0.11562737876287782,
+      "files_analyzed": 550,
+      "function_lines": 77717,
+      "function_lines_ratio": 0.3674441035048485,
+      "mean_lines_per_function": 15.583918187286946,
+      "num_classes": 1356,
+      "num_functions": 4987,
       "pypi_version": "0.1.25",
-      "total_lines": 204925
+      "total_lines": 211507
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -42,6 +42,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-20T03:17:50.854104Z",
+  "timestamp": "2026-10-20T03:17:57.259741Z",
   "workflow_status": {}
 }
