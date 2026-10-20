@@ -14,7 +14,7 @@ license = "Apache-2.0"
 keywords = [
     "audio",
     "stream",
-    "stream2py",
+    "stream2py>=1.0.48",
     "pyaudio",
     "real-time",
     "signal-processing",
