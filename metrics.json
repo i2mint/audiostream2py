@@ -1,5 +1,5 @@
 {
-  "collection_duration_seconds": 4.071395397186279,
+  "collection_duration_seconds": 3.4377570152282715,
   "commit_message": "Test that AudioBufferReader forwards blocking/timeout defaults; require stream2py>=1.0.48 (#12)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
   "commit_sha": "5fa997388fcc2047c06f559c7b47b5b9f86d6a95",
   "metrics": {
@@ -11,19 +11,19 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 10663,
-      "comment_lines_ratio": 0.051981163348478056,
-      "docs_lines": 15722,
-      "empty_lines": 23398,
-      "empty_lines_ratio": 0.11406313983191312,
-      "files_analyzed": 540,
-      "function_lines": 73246,
-      "function_lines_ratio": 0.3570676442485814,
-      "mean_lines_per_function": 15.647511215552232,
-      "num_classes": 1296,
-      "num_functions": 4681,
+      "comment_lines": 11159,
+      "comment_lines_ratio": 0.0527078983912259,
+      "docs_lines": 16664,
+      "empty_lines": 24480,
+      "empty_lines_ratio": 0.11562768640713415,
+      "files_analyzed": 551,
+      "function_lines": 77868,
+      "function_lines_ratio": 0.36779806720386937,
+      "mean_lines_per_function": 15.598557692307692,
+      "num_classes": 1356,
+      "num_functions": 4992,
       "pypi_version": "0.1.26",
-      "total_lines": 205132
+      "total_lines": 211714
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -42,6 +42,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-20T10:23:01.983406Z",
+  "timestamp": "2026-10-20T10:23:04.218104Z",
   "workflow_status": {}
 }

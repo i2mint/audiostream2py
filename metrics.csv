@@ -1,23 +1,23 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-20T10:23:01.983406Z
+timestamp,2026-10-20T10:23:04.218104Z
 commit_sha,5fa997388fcc2047c06f559c7b47b5b9f86d6a95
 commit_message,"Test that AudioBufferReader forwards blocking/timeout defaults; require stream2py>=1.0.48 (#12)
 
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 python_version,3.10
-metrics.umpyre_stats.num_functions,4681
-metrics.umpyre_stats.num_classes,1296
-metrics.umpyre_stats.total_lines,205132
-metrics.umpyre_stats.empty_lines,23398
-metrics.umpyre_stats.comment_lines,10663
-metrics.umpyre_stats.docs_lines,15722
-metrics.umpyre_stats.function_lines,73246
-metrics.umpyre_stats.empty_lines_ratio,0.11406313983191312
-metrics.umpyre_stats.comment_lines_ratio,0.051981163348478056
-metrics.umpyre_stats.function_lines_ratio,0.3570676442485814
-metrics.umpyre_stats.mean_lines_per_function,15.647511215552232
-metrics.umpyre_stats.files_analyzed,540
+metrics.umpyre_stats.num_functions,4992
+metrics.umpyre_stats.num_classes,1356
+metrics.umpyre_stats.total_lines,211714
+metrics.umpyre_stats.empty_lines,24480
+metrics.umpyre_stats.comment_lines,11159
+metrics.umpyre_stats.docs_lines,16664
+metrics.umpyre_stats.function_lines,77868
+metrics.umpyre_stats.empty_lines_ratio,0.11562768640713415
+metrics.umpyre_stats.comment_lines_ratio,0.0527078983912259
+metrics.umpyre_stats.function_lines_ratio,0.36779806720386937
+metrics.umpyre_stats.mean_lines_per_function,15.598557692307692
+metrics.umpyre_stats.files_analyzed,551
 metrics.umpyre_stats.pypi_version,0.1.26
 metrics.workflow_status.last_run_status,success
 metrics.workflow_status.last_success_timestamp,2026-10-20T03:20:18Z
@@ -38,4 +38,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,4.071395397186279
+collection_duration_seconds,3.4377570152282715
