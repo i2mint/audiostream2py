@@ -46,16 +46,16 @@ def reader(monkeypatch):
 
 def test_close_retries_a_transient_failure(reader):
     reader._fp = stream = FakeStream(stop_failures=1, close_failures=2)
-    BasePyAudioSourceReader._pyaudio_instance = pa = FakePyAudio(terminate_failures=1)
+    reader._pyaudio_instance = pa = FakePyAudio(terminate_failures=1)
     reader.close()
     assert (stream.stop_stream.calls, stream.close.calls) == (2, 3)
     assert pa.terminate.calls == 2
-    assert reader._fp is None and BasePyAudioSourceReader._pyaudio_instance is None
+    assert reader._fp is None and reader._pyaudio_instance is None
 
 
 def test_close_raises_when_the_stream_cannot_be_closed_but_still_terminates(reader):
     reader._fp = stream = FakeStream(close_failures=None)
-    BasePyAudioSourceReader._pyaudio_instance = pa = FakePyAudio()
+    reader._pyaudio_instance = pa = FakePyAudio()
     with pytest.raises(OSError, match="device busy"):
         reader.close()
     assert stream.close.calls == BasePyAudioSourceReader.release_attempts
@@ -70,11 +70,11 @@ def test_close_tolerates_a_stream_that_cannot_be_stopped_but_closes(reader):
 
 
 def test_terminate_failure_is_raised_and_instance_kept(reader):
-    BasePyAudioSourceReader._pyaudio_instance = pa = FakePyAudio(terminate_failures=None)
+    reader._pyaudio_instance = pa = FakePyAudio(terminate_failures=None)
     with pytest.raises(OSError, match="device busy"):
         reader.close()
     assert pa.terminate.calls == BasePyAudioSourceReader.release_attempts
-    assert BasePyAudioSourceReader._pyaudio_instance is pa
+    assert reader._pyaudio_instance is pa
 
 
 def test_close_is_idempotent(reader):
@@ -85,5 +85,5 @@ def test_close_is_idempotent(reader):
 def test_terminate_with_a_mocked_pyaudio_class_does_not_raise(reader, monkeypatch):
     """A caller's tests may patch ``pyaudio.PyAudio`` with a non-type mock."""
     monkeypatch.setattr(pyaudio, "PyAudio", object())
-    BasePyAudioSourceReader._pyaudio_instance = object()
-    BasePyAudioSourceReader._terminate_pyaudio()
+    reader._pyaudio_instance = object()
+    reader._terminate_pyaudio()
