@@ -32,7 +32,7 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Capture/Recording",
 ]
 dependencies = [
-    "stream2py",
+    "stream2py>=1.0.48",
     "pyaudio",
 ]
 
