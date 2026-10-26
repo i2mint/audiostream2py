@@ -1,4 +1,5 @@
 """Test PyAudioSourceReader"""
+import pytest
 import time
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -155,4 +156,40 @@ def test_device_queries_and_other_readers_do_not_close_an_open_stream():
         assert not stream.closed
         reader.close()
         assert stream.closed
+        assert all(pa.terminated for pa in created)
+
+
+def test_failed_open_does_not_leak_the_pyaudio_instance():
+    import audiostream2py.audio as audio
+
+    created = []
+
+    class FakePyAudio:
+        def __init__(self):
+            self.terminated = False
+            created.append(self)
+
+        def get_format_from_width(self, *_a):
+            return 8
+
+        def is_format_supported(self, **_kw):
+            return True
+
+        def get_device_count(self):
+            return 0
+
+        def get_default_input_device_info(self):
+            return {}
+
+        def open(self, **_kw):
+            raise OSError('device busy')
+
+        def terminate(self):
+            self.terminated = True
+
+    with patch.object(audio.pyaudio, 'PyAudio', FakePyAudio):
+        reader = PyAudioSourceReader(input_device_index=1)
+        with pytest.raises(OSError):
+            reader.open()
+        assert reader._pyaudio_instance is None
         assert all(pa.terminated for pa in created)

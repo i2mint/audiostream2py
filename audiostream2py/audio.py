@@ -394,7 +394,11 @@ class BasePyAudioSourceReader(SourceReader):
         self._init_vars()
         self._init_pyaudio()
         self._open_time = self.get_timestamp()
-        self._fp = self._pyaudio_instance.open(**self._pyaudio_open_params)
+        try:
+            self._fp = self._pyaudio_instance.open(**self._pyaudio_open_params)
+        except BaseException:  # ``__exit__`` never runs when ``open`` fails
+            self._terminate_pyaudio()
+            raise
 
     def close(self):
         """Stop and release the audio stream, then terminate PyAudio.
@@ -512,6 +516,15 @@ class BasePyAudioSourceReader(SourceReader):
         self._pyaudio_instance = pyaudio.PyAudio()
         return self._pyaudio_instance
 
+    @classmethod
+    def _terminate(cls, instance):
+        """Terminate a PyAudio instance with the class's release policy (single place)."""
+        _release(
+            instance.terminate,
+            attempts=cls.release_attempts,
+            retry_delay_s=cls.release_retry_delay_s,
+        )
+
     def _terminate_pyaudio(self):
         """Terminate this reader's PyAudio instance (retrying); raise if it cannot be.
 
@@ -520,11 +533,7 @@ class BasePyAudioSourceReader(SourceReader):
         instance = self._pyaudio_instance
         pyaudio_type = pyaudio.PyAudio  # may be a mock in a caller's tests
         if isinstance(pyaudio_type, type) and isinstance(instance, pyaudio_type):
-            _release(
-                instance.terminate,
-                attempts=self.release_attempts,
-                retry_delay_s=self.release_retry_delay_s,
-            )
+            self._terminate(instance)
             self._pyaudio_instance = None
 
     @classmethod
@@ -539,11 +548,7 @@ class BasePyAudioSourceReader(SourceReader):
         try:
             yield instance
         finally:
-            _release(
-                instance.terminate,
-                attempts=cls.release_attempts,
-                retry_delay_s=cls.release_retry_delay_s,
-            )
+            cls._terminate(instance)
 
     @classmethod
     def list_device_info(cls) -> list[dict]:
