@@ -1,20 +1,20 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-26T09:24:34.708833Z
-commit_sha,55d26956f87b05b6ea952f3d1ed7d16c062f4942
-commit_message,fix(#8): terminate PyAudio when open fails; single release helper
+timestamp,2026-10-26T09:24:45.019535Z
+commit_sha,39fb980664d3dbe24347286543fafe39975448cb
+commit_message,Merge 6c29cf2e432ef0acc05679e2bed74c53a80c9356 into 57a696e98994ee752be614d8ff3d6bfe76a1035c
 python_version,3.10
-metrics.umpyre_stats.num_functions,4686
+metrics.umpyre_stats.num_functions,4685
 metrics.umpyre_stats.num_classes,1295
-metrics.umpyre_stats.total_lines,205226
-metrics.umpyre_stats.empty_lines,23417
+metrics.umpyre_stats.total_lines,205207
+metrics.umpyre_stats.empty_lines,23414
 metrics.umpyre_stats.comment_lines,10697
-metrics.umpyre_stats.docs_lines,15728
-metrics.umpyre_stats.function_lines,73309
-metrics.umpyre_stats.empty_lines_ratio,0.11410347616773703
-metrics.umpyre_stats.comment_lines_ratio,0.052123025347665504
-metrics.umpyre_stats.function_lines_ratio,0.3572110746201748
-metrics.umpyre_stats.mean_lines_per_function,15.644259496372172
+metrics.umpyre_stats.docs_lines,15718
+metrics.umpyre_stats.function_lines,73290
+metrics.umpyre_stats.empty_lines_ratio,0.11409942155969338
+metrics.umpyre_stats.comment_lines_ratio,0.05212785138908517
+metrics.umpyre_stats.function_lines_ratio,0.3571515591573387
+metrics.umpyre_stats.mean_lines_per_function,15.643543223052294
 metrics.umpyre_stats.files_analyzed,540
 metrics.umpyre_stats.pypi_version,0.1.26
 metrics.workflow_status.last_run_status,success
@@ -36,4 +36,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,3.2443268299102783
+collection_duration_seconds,2.8062007427215576
