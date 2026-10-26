@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 3.388714075088501,
-  "commit_message": "Merge 55d26956f87b05b6ea952f3d1ed7d16c062f4942 into 57a696e98994ee752be614d8ff3d6bfe76a1035c",
-  "commit_sha": "094acd4ed1879640eca6aa3e57dadd32e54f0e92",
+  "collection_duration_seconds": 3.2443268299102783,
+  "commit_message": "fix(#8): terminate PyAudio when open fails; single release helper",
+  "commit_sha": "55d26956f87b05b6ea952f3d1ed7d16c062f4942",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -34,14 +34,14 @@
     },
     "workflow_status": {
       "last_run_status": "success",
-      "last_success_timestamp": "2026-10-20T10:23:27Z",
+      "last_success_timestamp": "2026-10-26T09:23:55Z",
       "recent_failure_count": 0,
-      "run_url": "https://github.com/i2mint/audiostream2py/actions/runs/39407440169",
+      "run_url": "https://github.com/i2mint/audiostream2py/actions/runs/40299053849",
       "total_runs_analyzed": 10
     }
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-26T09:23:49.401051Z",
+  "timestamp": "2026-10-26T09:24:34.708833Z",
   "workflow_status": {}
 }
