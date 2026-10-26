@@ -2,7 +2,6 @@
 
 import threading
 
-
 from audiostream2py.reader import AudioBufferReader
 from stream2py.utility.locked_sorted_deque import RWLockSortedDeque
 
@@ -24,7 +23,30 @@ def test_blocking_and_timeout_are_forwarded_to_the_base_reader():
     assert reader.blocking is True and reader.timeout == 0.5
 
 
-def test_the_class_is_an_audio_reader_through_the_source_buffer_factory():
-    from audiostream2py.audio import PyAudioSourceReader
+def test_mk_reader_forwards_blocking_and_timeout_and_read_blocks_within_timeout():
+    """End to end through stream2py's buffer factory, without PyAudio."""
+    import time
 
-    assert PyAudioSourceReader.buffer_reader_class is AudioBufferReader
+    from stream2py import StreamBuffer
+    from stream2py.source_reader import SourceReader
+
+    class _Empty(SourceReader):
+        buffer_reader_class = AudioBufferReader
+        key = staticmethod(lambda seg: seg)
+
+        def open(self):
+            pass
+
+        def close(self):
+            pass
+
+        def read(self):
+            return None
+
+    with StreamBuffer(_Empty()) as sb:
+        reader = sb.mk_reader(blocking=True, timeout=0.2)
+        assert isinstance(reader, AudioBufferReader)
+        assert reader.blocking is True and reader.timeout == 0.2
+        t0 = time.monotonic()
+        assert reader.read() is None
+        assert 0.15 <= time.monotonic() - t0 < 2
