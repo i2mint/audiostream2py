@@ -1,0 +1,47 @@
+{
+  "collection_duration_seconds": 3.478748083114624,
+  "commit_message": "Merge branch 'master' into audiobufferreader-blocking-12",
+  "commit_sha": "90a3e2e5fc63179ffddd97fd3c7ab8539d0ca9df",
+  "metrics": {
+    "coverage": {
+      "branch_coverage": 0.0,
+      "error": "No coverage file found",
+      "line_coverage": 0.0,
+      "statements_covered": 0,
+      "statements_total": 0
+    },
+    "umpyre_stats": {
+      "comment_lines": 11159,
+      "comment_lines_ratio": 0.052702172978742495,
+      "docs_lines": 16674,
+      "empty_lines": 24483,
+      "empty_lines_ratio": 0.11562929483274062,
+      "files_analyzed": 551,
+      "function_lines": 77891,
+      "function_lines_ratio": 0.3678667403429727,
+      "mean_lines_per_function": 15.60004005607851,
+      "num_classes": 1356,
+      "num_functions": 4993,
+      "pypi_version": "0.1.26",
+      "total_lines": 211737
+    },
+    "wily": {
+      "cyclomatic_avg": 0.0,
+      "error": "wily report failed: Usage: wily report [OPTIONS] FILE [METRICS]...\nTry 'wily report --help' for help.\n\nError: Invalid value for '-f' / '--format': 'json' is not one of 'CONSOLE', 'HTML'.\n",
+      "files_analyzed": 0,
+      "maintainability_index": 0.0,
+      "total_loc": 0
+    },
+    "workflow_status": {
+      "last_run_status": "success",
+      "last_success_timestamp": "2026-10-27T00:54:17Z",
+      "recent_failure_count": 0,
+      "run_url": "https://github.com/i2mint/audiostream2py/actions/runs/40429150789",
+      "total_runs_analyzed": 10
+    }
+  },
+  "python_version": "3.10",
+  "schema_version": "1.0",
+  "timestamp": "2026-10-27T00:55:47.398862Z",
+  "workflow_status": {}
+}
