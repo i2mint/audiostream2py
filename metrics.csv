@@ -1,8 +1,20 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-27T00:55:47.398862Z
-commit_sha,90a3e2e5fc63179ffddd97fd3c7ab8539d0ca9df
-commit_message,Merge branch 'master' into audiobufferreader-blocking-12
+timestamp,2026-10-27T00:55:52.411703Z
+commit_sha,91dc73269cf28eca9cab9257036dd38056ac444b
+commit_message,"Per-reader PyAudio instances; device queries use their own (#10)
+
+* PyAudioSourceReader: per-reader PyAudio instance, fresh instance per device query (#8)
+
+* fix(#8): terminate PyAudio when open fails; single release helper
+
+* Review fixes: per-reader release policy for terminate; drop dead test patch
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+
+---------
+
+Co-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
 python_version,3.10
 metrics.umpyre_stats.num_functions,4993
 metrics.umpyre_stats.num_classes,1356
@@ -36,4 +48,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,3.478748083114624
+collection_duration_seconds,3.2456774711608887
