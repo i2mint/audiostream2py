@@ -1,8 +1,20 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-27T00:54:10.744985Z
-commit_sha,68bc9e922cfff54f851ebfe66c33a9f3eabe02e3
-commit_message,Merge 20eae94845c9b87668a951b9ee09f6ff3a4d394a into 57a696e98994ee752be614d8ff3d6bfe76a1035c
+timestamp,2026-10-27T00:55:35.898771Z
+commit_sha,91dc73269cf28eca9cab9257036dd38056ac444b
+commit_message,"Per-reader PyAudio instances; device queries use their own (#10)
+
+* PyAudioSourceReader: per-reader PyAudio instance, fresh instance per device query (#8)
+
+* fix(#8): terminate PyAudio when open fails; single release helper
+
+* Review fixes: per-reader release policy for terminate; drop dead test patch
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+
+---------
+
+Co-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
 python_version,3.10
 metrics.umpyre_stats.num_functions,4686
 metrics.umpyre_stats.num_classes,1295
@@ -18,9 +30,9 @@ metrics.umpyre_stats.mean_lines_per_function,15.645113102859582
 metrics.umpyre_stats.files_analyzed,540
 metrics.umpyre_stats.pypi_version,0.1.26
 metrics.workflow_status.last_run_status,success
-metrics.workflow_status.last_success_timestamp,2026-10-27T00:53:51Z
+metrics.workflow_status.last_success_timestamp,2026-10-27T00:54:17Z
 metrics.workflow_status.recent_failure_count,0
-metrics.workflow_status.run_url,https://github.com/i2mint/audiostream2py/actions/runs/40429145194
+metrics.workflow_status.run_url,https://github.com/i2mint/audiostream2py/actions/runs/40429150789
 metrics.workflow_status.total_runs_analyzed,10
 metrics.wily.cyclomatic_avg,0.0
 metrics.wily.maintainability_index,0.0
@@ -36,4 +48,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,3.318528652191162
+collection_duration_seconds,2.52982497215271
