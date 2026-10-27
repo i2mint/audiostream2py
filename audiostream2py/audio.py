@@ -200,7 +200,7 @@ def _release(action: Callable, *, attempts: int, retry_delay_s: float):
 
 
 class BasePyAudioSourceReader(SourceReader):
-    _pyaudio_instance = None
+    _pyaudio_instance = None  # set per reader by ``open``; see ``_init_pyaudio``
     #: Attempts at releasing the stream / PyAudio instance on ``close`` before raising.
     release_attempts = RELEASE_ATTEMPTS
     #: Seconds between two release attempts.
@@ -394,7 +394,11 @@ class BasePyAudioSourceReader(SourceReader):
         self._init_vars()
         self._init_pyaudio()
         self._open_time = self.get_timestamp()
-        self._fp = self._pyaudio_instance.open(**self._pyaudio_open_params)
+        try:
+            self._fp = self._pyaudio_instance.open(**self._pyaudio_open_params)
+        except BaseException:  # ``__exit__`` never runs when ``open`` fails
+            self._terminate_pyaudio()
+            raise
 
     def close(self):
         """Stop and release the audio stream, then terminate PyAudio.
@@ -501,35 +505,54 @@ class BasePyAudioSourceReader(SourceReader):
         self.buffer_end = buffer_end_timestamp
         return status_flag
 
-    @classmethod
-    def _init_pyaudio(cls) -> pyaudio.PyAudio:
-        cls._terminate_pyaudio()
-        cls._pyaudio_instance = pyaudio.PyAudio()
-        return cls._pyaudio_instance
+    def _init_pyaudio(self) -> pyaudio.PyAudio:
+        """Give this reader its own PyAudio instance (closing a previous one of its own).
 
-    @classmethod
-    def _terminate_pyaudio(cls):
-        """Terminate the shared PyAudio instance (retrying); raise if it cannot be.
+        The instance is per reader: ``PyAudio.terminate`` closes every stream the
+        instance owns, so sharing one across readers (or with device queries) would
+        close an open stream under its reader.
+        """
+        self._terminate_pyaudio()
+        self._pyaudio_instance = pyaudio.PyAudio()
+        return self._pyaudio_instance
+
+    @staticmethod
+    def _terminate(instance, *, attempts, retry_delay_s):
+        """Terminate a PyAudio instance, retrying per the given release policy."""
+        _release(instance.terminate, attempts=attempts, retry_delay_s=retry_delay_s)
+
+    def _terminate_pyaudio(self):
+        """Terminate this reader's PyAudio instance (retrying); raise if it cannot be.
 
         The instance reference is only dropped once ``terminate`` has succeeded.
         """
-        instance = cls._pyaudio_instance
+        instance = self._pyaudio_instance
         pyaudio_type = pyaudio.PyAudio  # may be a mock in a caller's tests
         if isinstance(pyaudio_type, type) and isinstance(instance, pyaudio_type):
-            _release(
-                instance.terminate,
-                attempts=cls.release_attempts,
-                retry_delay_s=cls.release_retry_delay_s,
+            self._terminate(
+                instance,
+                attempts=self.release_attempts,
+                retry_delay_s=self.release_retry_delay_s,
             )
-            cls._pyaudio_instance = None
+            self._pyaudio_instance = None
 
     @classmethod
     @contextmanager
     def _pyaudio(cls) -> Generator[pyaudio.PyAudio, None, None]:
+        """A short-lived PyAudio instance for device queries.
+
+        Independent of every reader's instance, so querying devices (or constructing
+        another reader) never closes a stream that is open elsewhere.
+        """
+        instance = pyaudio.PyAudio()
         try:
-            yield cls._init_pyaudio()
+            yield instance
         finally:
-            cls._terminate_pyaudio()
+            cls._terminate(
+                instance,
+                attempts=cls.release_attempts,
+                retry_delay_s=cls.release_retry_delay_s,
+            )
 
     @classmethod
     def list_device_info(cls) -> list[dict]:
