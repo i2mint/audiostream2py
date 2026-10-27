@@ -1,26 +1,40 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-27T00:56:09.589990Z
-commit_sha,90a3e2e5fc63179ffddd97fd3c7ab8539d0ca9df
-commit_message,Merge branch 'master' into audiobufferreader-blocking-12
+timestamp,2026-10-27T00:57:25.809649Z
+commit_sha,79660270e0a23ae850974bc74b1c3c7ea058b7c2
+commit_message,"AudioBufferReader: blocking/timeout defaults (#12) (#13)
+
+* Test that AudioBufferReader forwards blocking/timeout defaults; require stream2py>=1.0.48 (#12)
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+
+* Pin stream2py>=1.0.48 in dependencies, not keywords (#12)
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+
+* test(#12): exercise mk_reader end to end
+
+---------
+
+Co-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>"
 python_version,3.10
-metrics.umpyre_stats.num_functions,4686
-metrics.umpyre_stats.num_classes,1295
-metrics.umpyre_stats.total_lines,205230
-metrics.umpyre_stats.empty_lines,23417
-metrics.umpyre_stats.comment_lines,10697
-metrics.umpyre_stats.docs_lines,15728
-metrics.umpyre_stats.function_lines,73313
-metrics.umpyre_stats.empty_lines_ratio,0.11410125225356917
-metrics.umpyre_stats.comment_lines_ratio,0.052122009452809044
-metrics.umpyre_stats.function_lines_ratio,0.3572236027871169
-metrics.umpyre_stats.mean_lines_per_function,15.645113102859582
-metrics.umpyre_stats.files_analyzed,540
-metrics.umpyre_stats.pypi_version,0.1.26
+metrics.umpyre_stats.num_functions,4993
+metrics.umpyre_stats.num_classes,1356
+metrics.umpyre_stats.total_lines,211737
+metrics.umpyre_stats.empty_lines,24483
+metrics.umpyre_stats.comment_lines,11159
+metrics.umpyre_stats.docs_lines,16674
+metrics.umpyre_stats.function_lines,77891
+metrics.umpyre_stats.empty_lines_ratio,0.11562929483274062
+metrics.umpyre_stats.comment_lines_ratio,0.052702172978742495
+metrics.umpyre_stats.function_lines_ratio,0.3678667403429727
+metrics.umpyre_stats.mean_lines_per_function,15.60004005607851
+metrics.umpyre_stats.files_analyzed,551
+metrics.umpyre_stats.pypi_version,0.1.27
 metrics.workflow_status.last_run_status,success
-metrics.workflow_status.last_success_timestamp,2026-10-27T00:54:17Z
+metrics.workflow_status.last_success_timestamp,2026-10-27T00:57:18Z
 metrics.workflow_status.recent_failure_count,0
-metrics.workflow_status.run_url,https://github.com/i2mint/audiostream2py/actions/runs/40429150789
+metrics.workflow_status.run_url,https://github.com/i2mint/audiostream2py/actions/runs/40429530635
 metrics.workflow_status.total_runs_analyzed,10
 metrics.wily.cyclomatic_avg,0.0
 metrics.wily.maintainability_index,0.0
@@ -36,4 +50,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,3.4859111309051514
+collection_duration_seconds,2.239826202392578

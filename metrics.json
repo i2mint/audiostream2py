@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 3.4859111309051514,
-  "commit_message": "Merge branch 'master' into audiobufferreader-blocking-12",
-  "commit_sha": "90a3e2e5fc63179ffddd97fd3c7ab8539d0ca9df",
+  "collection_duration_seconds": 2.239826202392578,
+  "commit_message": "AudioBufferReader: blocking/timeout defaults (#12) (#13)\n\n* Test that AudioBufferReader forwards blocking/timeout defaults; require stream2py>=1.0.48 (#12)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* Pin stream2py>=1.0.48 in dependencies, not keywords (#12)\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>\n\n* test(#12): exercise mk_reader end to end\n\n---------\n\nCo-authored-by: Claude Sonnet 5.5 <noreply@anthropic.com>",
+  "commit_sha": "79660270e0a23ae850974bc74b1c3c7ea058b7c2",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -11,19 +11,19 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 10697,
-      "comment_lines_ratio": 0.052122009452809044,
-      "docs_lines": 15728,
-      "empty_lines": 23417,
-      "empty_lines_ratio": 0.11410125225356917,
-      "files_analyzed": 540,
-      "function_lines": 73313,
-      "function_lines_ratio": 0.3572236027871169,
-      "mean_lines_per_function": 15.645113102859582,
-      "num_classes": 1295,
-      "num_functions": 4686,
-      "pypi_version": "0.1.26",
-      "total_lines": 205230
+      "comment_lines": 11159,
+      "comment_lines_ratio": 0.052702172978742495,
+      "docs_lines": 16674,
+      "empty_lines": 24483,
+      "empty_lines_ratio": 0.11562929483274062,
+      "files_analyzed": 551,
+      "function_lines": 77891,
+      "function_lines_ratio": 0.3678667403429727,
+      "mean_lines_per_function": 15.60004005607851,
+      "num_classes": 1356,
+      "num_functions": 4993,
+      "pypi_version": "0.1.27",
+      "total_lines": 211737
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -34,14 +34,14 @@
     },
     "workflow_status": {
       "last_run_status": "success",
-      "last_success_timestamp": "2026-10-27T00:54:17Z",
+      "last_success_timestamp": "2026-10-27T00:57:18Z",
       "recent_failure_count": 0,
-      "run_url": "https://github.com/i2mint/audiostream2py/actions/runs/40429150789",
+      "run_url": "https://github.com/i2mint/audiostream2py/actions/runs/40429530635",
       "total_runs_analyzed": 10
     }
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-27T00:56:09.589990Z",
+  "timestamp": "2026-10-27T00:57:25.809649Z",
   "workflow_status": {}
 }
