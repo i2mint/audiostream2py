@@ -1,5 +1,5 @@
 {
-  "collection_duration_seconds": 2.385685920715332,
+  "collection_duration_seconds": 3.875722646713257,
   "commit_message": "Review fixes: per-reader release policy for terminate; drop dead test patch\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
   "commit_sha": "20eae94845c9b87668a951b9ee09f6ff3a4d394a",
   "metrics": {
@@ -11,19 +11,19 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 11159,
-      "comment_lines_ratio": 0.052702172978742495,
-      "docs_lines": 16674,
-      "empty_lines": 24483,
-      "empty_lines_ratio": 0.11562929483274062,
-      "files_analyzed": 551,
-      "function_lines": 77891,
-      "function_lines_ratio": 0.3678667403429727,
-      "mean_lines_per_function": 15.60004005607851,
-      "num_classes": 1356,
-      "num_functions": 4993,
+      "comment_lines": 10697,
+      "comment_lines_ratio": 0.052122009452809044,
+      "docs_lines": 15728,
+      "empty_lines": 23417,
+      "empty_lines_ratio": 0.11410125225356917,
+      "files_analyzed": 540,
+      "function_lines": 73313,
+      "function_lines_ratio": 0.3572236027871169,
+      "mean_lines_per_function": 15.645113102859582,
+      "num_classes": 1295,
+      "num_functions": 4686,
       "pypi_version": "0.1.26",
-      "total_lines": 211737
+      "total_lines": 205230
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -42,6 +42,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-27T00:53:30.094275Z",
+  "timestamp": "2026-10-27T00:53:44.311358Z",
   "workflow_status": {}
 }

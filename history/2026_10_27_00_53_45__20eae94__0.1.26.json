@@ -1,0 +1,47 @@
+{
+  "collection_duration_seconds": 3.875722646713257,
+  "commit_message": "Review fixes: per-reader release policy for terminate; drop dead test patch\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>",
+  "commit_sha": "20eae94845c9b87668a951b9ee09f6ff3a4d394a",
+  "metrics": {
+    "coverage": {
+      "branch_coverage": 0.0,
+      "error": "No coverage file found",
+      "line_coverage": 0.0,
+      "statements_covered": 0,
+      "statements_total": 0
+    },
+    "umpyre_stats": {
+      "comment_lines": 10697,
+      "comment_lines_ratio": 0.052122009452809044,
+      "docs_lines": 15728,
+      "empty_lines": 23417,
+      "empty_lines_ratio": 0.11410125225356917,
+      "files_analyzed": 540,
+      "function_lines": 73313,
+      "function_lines_ratio": 0.3572236027871169,
+      "mean_lines_per_function": 15.645113102859582,
+      "num_classes": 1295,
+      "num_functions": 4686,
+      "pypi_version": "0.1.26",
+      "total_lines": 205230
+    },
+    "wily": {
+      "cyclomatic_avg": 0.0,
+      "error": "wily report failed: Usage: wily report [OPTIONS] FILE [METRICS]...\nTry 'wily report --help' for help.\n\nError: Invalid value for '-f' / '--format': 'json' is not one of 'CONSOLE', 'HTML'.\n",
+      "files_analyzed": 0,
+      "maintainability_index": 0.0,
+      "total_loc": 0
+    },
+    "workflow_status": {
+      "last_run_status": "success",
+      "last_success_timestamp": "2026-10-26T09:25:43Z",
+      "recent_failure_count": 0,
+      "run_url": "https://github.com/i2mint/audiostream2py/actions/runs/40299171024",
+      "total_runs_analyzed": 10
+    }
+  },
+  "python_version": "3.10",
+  "schema_version": "1.0",
+  "timestamp": "2026-10-27T00:53:44.311358Z",
+  "workflow_status": {}
+}

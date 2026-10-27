@@ -1,23 +1,23 @@
 metric,value
 schema_version,1.0
-timestamp,2026-10-27T00:53:30.094275Z
+timestamp,2026-10-27T00:53:44.311358Z
 commit_sha,20eae94845c9b87668a951b9ee09f6ff3a4d394a
 commit_message,"Review fixes: per-reader release policy for terminate; drop dead test patch
 
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 python_version,3.10
-metrics.umpyre_stats.num_functions,4993
-metrics.umpyre_stats.num_classes,1356
-metrics.umpyre_stats.total_lines,211737
-metrics.umpyre_stats.empty_lines,24483
-metrics.umpyre_stats.comment_lines,11159
-metrics.umpyre_stats.docs_lines,16674
-metrics.umpyre_stats.function_lines,77891
-metrics.umpyre_stats.empty_lines_ratio,0.11562929483274062
-metrics.umpyre_stats.comment_lines_ratio,0.052702172978742495
-metrics.umpyre_stats.function_lines_ratio,0.3678667403429727
-metrics.umpyre_stats.mean_lines_per_function,15.60004005607851
-metrics.umpyre_stats.files_analyzed,551
+metrics.umpyre_stats.num_functions,4686
+metrics.umpyre_stats.num_classes,1295
+metrics.umpyre_stats.total_lines,205230
+metrics.umpyre_stats.empty_lines,23417
+metrics.umpyre_stats.comment_lines,10697
+metrics.umpyre_stats.docs_lines,15728
+metrics.umpyre_stats.function_lines,73313
+metrics.umpyre_stats.empty_lines_ratio,0.11410125225356917
+metrics.umpyre_stats.comment_lines_ratio,0.052122009452809044
+metrics.umpyre_stats.function_lines_ratio,0.3572236027871169
+metrics.umpyre_stats.mean_lines_per_function,15.645113102859582
+metrics.umpyre_stats.files_analyzed,540
 metrics.umpyre_stats.pypi_version,0.1.26
 metrics.workflow_status.last_run_status,success
 metrics.workflow_status.last_success_timestamp,2026-10-26T09:25:43Z
@@ -38,4 +38,4 @@ metrics.coverage.branch_coverage,0.0
 metrics.coverage.statements_covered,0
 metrics.coverage.statements_total,0
 metrics.coverage.error,No coverage file found
-collection_duration_seconds,2.385685920715332
+collection_duration_seconds,3.875722646713257
