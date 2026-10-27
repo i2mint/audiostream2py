@@ -1,4 +1,5 @@
 """Test PyAudioSourceReader"""
+import pytest
 import time
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -98,3 +99,97 @@ def test_stream_callback():
             final_audio_segment.end_date
             == last_audio_segment.start_date + (input_overflow_time + 2) * 1e6
         )
+
+
+def test_device_queries_and_other_readers_do_not_close_an_open_stream():
+    """PyAudio.terminate closes all of its instance's streams: keep instances apart (#8)."""
+    import audiostream2py.audio as audio
+
+    created = []
+
+    class FakeStream:
+        def __init__(self, owner):
+            self.owner, self.closed = owner, False
+
+        def stop_stream(self):
+            pass
+
+        def close(self):
+            self.closed = True
+
+    class FakePyAudio:
+        def __init__(self):
+            self.streams, self.terminated = [], False
+            created.append(self)
+
+        def open(self, **_kw):
+            self.streams.append(FakeStream(self))
+            return self.streams[-1]
+
+        def terminate(self):
+            self.terminated = True
+            for stream in self.streams:  # what PyAudio does to streams it owns
+                stream.closed = True
+
+        def get_format_from_width(self, *_a):
+            return 8
+
+        def is_format_supported(self, **_kw):
+            return True
+
+        def get_device_count(self):
+            return 0
+
+        def get_default_input_device_info(self):
+            return {}
+
+    with patch.object(audio.pyaudio, 'PyAudio', FakePyAudio):
+        reader = PyAudioSourceReader(input_device_index=1)
+        reader.open()
+        stream = reader._fp
+        other = PyAudioSourceReader(input_device_index=1)  # constructing another reader
+        PyAudioSourceReader.list_device_info()
+        PyAudioSourceReader.get_default_input_device_info()
+        other.open()
+        assert not stream.closed
+        other.close()
+        assert not stream.closed
+        reader.close()
+        assert stream.closed
+        assert all(pa.terminated for pa in created)
+
+
+def test_failed_open_does_not_leak_the_pyaudio_instance():
+    import audiostream2py.audio as audio
+
+    created = []
+
+    class FakePyAudio:
+        def __init__(self):
+            self.terminated = False
+            created.append(self)
+
+        def get_format_from_width(self, *_a):
+            return 8
+
+        def is_format_supported(self, **_kw):
+            return True
+
+        def get_device_count(self):
+            return 0
+
+        def get_default_input_device_info(self):
+            return {}
+
+        def open(self, **_kw):
+            raise OSError('device busy')
+
+        def terminate(self):
+            self.terminated = True
+
+    with patch.object(audio.pyaudio, 'PyAudio', FakePyAudio):
+        reader = PyAudioSourceReader(input_device_index=1)
+        with pytest.raises(OSError):
+            reader.open()
+        assert reader._pyaudio_instance is None
+        assert all(pa.terminated for pa in created)
