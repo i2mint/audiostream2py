@@ -1,7 +1,7 @@
 {
-  "collection_duration_seconds": 2.8726019859313965,
-  "commit_message": "Merge 90a3e2e5fc63179ffddd97fd3c7ab8539d0ca9df into 91dc73269cf28eca9cab9257036dd38056ac444b",
-  "commit_sha": "e6db21cdbec19e29ae2ed1425a293e31b7d7e5a7",
+  "collection_duration_seconds": 3.4859111309051514,
+  "commit_message": "Merge branch 'master' into audiobufferreader-blocking-12",
+  "commit_sha": "90a3e2e5fc63179ffddd97fd3c7ab8539d0ca9df",
   "metrics": {
     "coverage": {
       "branch_coverage": 0.0,
@@ -11,19 +11,19 @@
       "statements_total": 0
     },
     "umpyre_stats": {
-      "comment_lines": 11159,
-      "comment_lines_ratio": 0.052702172978742495,
-      "docs_lines": 16674,
-      "empty_lines": 24483,
-      "empty_lines_ratio": 0.11562929483274062,
-      "files_analyzed": 551,
-      "function_lines": 77891,
-      "function_lines_ratio": 0.3678667403429727,
-      "mean_lines_per_function": 15.60004005607851,
-      "num_classes": 1356,
-      "num_functions": 4993,
+      "comment_lines": 10697,
+      "comment_lines_ratio": 0.052122009452809044,
+      "docs_lines": 15728,
+      "empty_lines": 23417,
+      "empty_lines_ratio": 0.11410125225356917,
+      "files_analyzed": 540,
+      "function_lines": 73313,
+      "function_lines_ratio": 0.3572236027871169,
+      "mean_lines_per_function": 15.645113102859582,
+      "num_classes": 1295,
+      "num_functions": 4686,
       "pypi_version": "0.1.26",
-      "total_lines": 211737
+      "total_lines": 205230
     },
     "wily": {
       "cyclomatic_avg": 0.0,
@@ -42,6 +42,6 @@
   },
   "python_version": "3.10",
   "schema_version": "1.0",
-  "timestamp": "2026-10-27T00:56:03.039198Z",
+  "timestamp": "2026-10-27T00:56:09.589990Z",
   "workflow_status": {}
 }
