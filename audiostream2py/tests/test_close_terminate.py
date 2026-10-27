@@ -38,9 +38,9 @@ class FakePyAudio(pyaudio.PyAudio):
 def reader(monkeypatch):
     """A reader built without touching PortAudio, with instant retries."""
     monkeypatch.setattr(audio.time, "sleep", lambda _s: None)
-    monkeypatch.setattr(BasePyAudioSourceReader, "_pyaudio_instance", None)
     obj = object.__new__(BasePyAudioSourceReader)
     obj._fp = None
+    obj._pyaudio_instance = None
     return obj
 
 

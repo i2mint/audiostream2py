@@ -516,14 +516,10 @@ class BasePyAudioSourceReader(SourceReader):
         self._pyaudio_instance = pyaudio.PyAudio()
         return self._pyaudio_instance
 
-    @classmethod
-    def _terminate(cls, instance):
-        """Terminate a PyAudio instance with the class's release policy (single place)."""
-        _release(
-            instance.terminate,
-            attempts=cls.release_attempts,
-            retry_delay_s=cls.release_retry_delay_s,
-        )
+    @staticmethod
+    def _terminate(instance, *, attempts, retry_delay_s):
+        """Terminate a PyAudio instance, retrying per the given release policy."""
+        _release(instance.terminate, attempts=attempts, retry_delay_s=retry_delay_s)
 
     def _terminate_pyaudio(self):
         """Terminate this reader's PyAudio instance (retrying); raise if it cannot be.
@@ -533,7 +529,11 @@ class BasePyAudioSourceReader(SourceReader):
         instance = self._pyaudio_instance
         pyaudio_type = pyaudio.PyAudio  # may be a mock in a caller's tests
         if isinstance(pyaudio_type, type) and isinstance(instance, pyaudio_type):
-            self._terminate(instance)
+            self._terminate(
+                instance,
+                attempts=self.release_attempts,
+                retry_delay_s=self.release_retry_delay_s,
+            )
             self._pyaudio_instance = None
 
     @classmethod
@@ -548,7 +548,11 @@ class BasePyAudioSourceReader(SourceReader):
         try:
             yield instance
         finally:
-            cls._terminate(instance)
+            cls._terminate(
+                instance,
+                attempts=cls.release_attempts,
+                retry_delay_s=cls.release_retry_delay_s,
+            )
 
     @classmethod
     def list_device_info(cls) -> list[dict]:
